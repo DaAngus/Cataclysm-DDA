@@ -1,17 +1,22 @@
 #include "pickup.h"
 
+#include <climits>
+#include <cstddef>
 #include <map>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <functional>
+#include <memory>
+#include <utility>
 
 #include "auto_pickup.h"
+#include "avatar.h"
 #include "cata_utility.h"
 #include "debug.h"
 #include "game.h"
 #include "input.h"
-#include "item_location.h"
 #include "item_search.h"
-#include "itype.h"
 #include "map.h"
 #include "mapdata.h"
 #include "messages.h"
@@ -22,13 +27,25 @@
 #include "string_input_popup.h"
 #include "translations.h"
 #include "ui.h"
-#include "veh_interact.h"
 #include "vehicle.h"
 #include "vpart_position.h"
 #include "vpart_reference.h"
+#include "character.h"
+#include "color.h"
+#include "cursesdef.h"
+#include "enums.h"
+#include "int_id.h"
+#include "item.h"
+#include "line.h"
+#include "optional.h"
+#include "player_activity.h"
+#include "ret_val.h"
+#include "string_id.h"
+#include "units.h"
+#include "type_id.h"
 
-typedef std::pair<item, int> ItemCount;
-typedef std::map<std::string, ItemCount> PickupMap;
+using ItemCount = std::pair<item, int>;
+using PickupMap = std::map<std::string, ItemCount>;
 
 // Pickup helper functions
 static bool pick_one_up( const tripoint &pickup_target, item &newit,
@@ -113,7 +130,7 @@ enum pickup_answer : int {
     NUM_ANSWERS
 };
 
-pickup_answer handle_problematic_pickup( const item &it, bool &offered_swap,
+static pickup_answer handle_problematic_pickup( const item &it, bool &offered_swap,
         const std::string &explain )
 {
     if( offered_swap ) {
@@ -164,7 +181,12 @@ bool pick_one_up( const tripoint &pickup_target, item &newit, vehicle *veh,
     pickup_answer option = CANCEL;
     item leftovers = newit;
     const auto wield_check = u.can_wield( newit );
-
+    if( newit.has_owner() &&
+        newit.get_owner() != g->faction_manager_ptr->get( faction_id( "your_followers" ) ) ) {
+        if( !query_yn( "Picking up this item will be considered stealing, continue?" ) ) {
+            return false;
+        }
+    }
     if( newit.invlet != '\0' &&
         u.invlet_to_position( newit.invlet ) != INT_MIN ) {
         // Existing invlet is not re-usable, remove it and let the code in player.cpp/inventory.cpp
@@ -349,7 +371,7 @@ bool Pickup::do_pickup( const tripoint &pickup_target_arg, bool from_vehicle,
 }
 
 // Pick up items at (pos).
-void Pickup::pick_up( const tripoint &p, int min )
+void Pickup::pick_up( const tripoint &p, int min, from_where get_items_from )
 {
     int cargo_part = -1;
 
@@ -358,25 +380,29 @@ void Pickup::pick_up( const tripoint &p, int min )
     bool from_vehicle = false;
 
     if( min != -1 ) {
-        veh_interact_results get_items_from = ITEMS_FROM_GROUND;
-        if( veh != nullptr ) {
-            get_items_from = veh->interact_with( p, vp->part_index() );
-        }
-        switch( get_items_from ) {
-            case DONE:
-                return;
-            case ITEMS_FROM_CARGO: {
-                const cata::optional<vpart_reference> carg = vp.part_with_feature( "CARGO", false );
-                cargo_part = carg ? carg->part_index() : -1;
-                from_vehicle = cargo_part >= 0;
-                break;
-            }
-            case ITEMS_FROM_GROUND:
-                // Nothing to change, default is to pick from ground anyway.
-                if( g->m.has_flag( "SEALED", p ) ) {
+        if( veh != nullptr && get_items_from == prompt ) {
+            const cata::optional<vpart_reference> carg = vp.part_with_feature( "CARGO", false );
+            const bool veh_has_items = carg && !veh->get_items( carg->part_index() ).empty();
+            const bool map_has_items = g->m.has_items( p );
+            if( veh_has_items && map_has_items ) {
+                uilist amenu( _( "Get items from where?" ), { _( "Get items from vehicle cargo" ), _( "Get items on the ground" ) } );
+                if( amenu.ret == UILIST_CANCEL ) {
                     return;
                 }
-                break;
+                get_items_from = static_cast<from_where>( amenu.ret );
+            } else if( veh_has_items ) {
+                get_items_from = from_cargo;
+            }
+        }
+        if( get_items_from == from_cargo ) {
+            const cata::optional<vpart_reference> carg = vp.part_with_feature( "CARGO", false );
+            cargo_part = carg ? carg->part_index() : -1;
+            from_vehicle = cargo_part >= 0;
+        } else {
+            // Nothing to change, default is to pick from ground anyway.
+            if( g->m.has_flag( "SEALED", p ) ) {
+                return;
+            }
         }
     }
 
@@ -508,19 +534,19 @@ void Pickup::pick_up( const tripoint &p, int min )
                                          pickupW,  pickupH,  0 );
 
         std::string action;
-        long raw_input_char = ' ';
+        int raw_input_char = ' ';
         input_context ctxt( "PICKUP" );
         ctxt.register_action( "UP" );
         ctxt.register_action( "DOWN" );
         ctxt.register_action( "RIGHT" );
         ctxt.register_action( "LEFT" );
-        ctxt.register_action( "NEXT_TAB", _( "Next page" ) );
-        ctxt.register_action( "PREV_TAB", _( "Previous page" ) );
+        ctxt.register_action( "NEXT_TAB", translate_marker( "Next page" ) );
+        ctxt.register_action( "PREV_TAB", translate_marker( "Previous page" ) );
         ctxt.register_action( "SCROLL_UP" );
         ctxt.register_action( "SCROLL_DOWN" );
         ctxt.register_action( "CONFIRM" );
         ctxt.register_action( "SELECT_ALL" );
-        ctxt.register_action( "QUIT", _( "Cancel" ) );
+        ctxt.register_action( "QUIT", translate_marker( "Cancel" ) );
         ctxt.register_action( "ANY_INPUT" );
         ctxt.register_action( "HELP_KEYBINDINGS" );
         ctxt.register_action( "FILTER" );
@@ -537,7 +563,8 @@ void Pickup::pick_up( const tripoint &p, int min )
 
         std::string filter;
         std::string new_filter;
-        std::vector<int> matches;//Indexes of items that match the filter
+        // Indexes of items that match the filter
+        std::vector<int> matches;
         bool filter_changed = true;
         if( g->was_fullscreen ) {
             g->draw_ter();
@@ -617,7 +644,7 @@ void Pickup::pick_up( const tripoint &p, int min )
                     filter_changed = true;
                 } else {
                     wrefresh( g->w_terrain );
-                    g->draw_panels();
+                    g->draw_panels( true );
                 }
             } else if( action == "ANY_INPUT" && raw_input_char == '`' ) {
                 std::string ext = string_input_popup()
@@ -675,7 +702,7 @@ void Pickup::pick_up( const tripoint &p, int min )
                     if( matches.empty() ) {
                         popup( _( "Your filter returned no results" ) );
                         wrefresh( g->w_terrain );
-                        g->draw_panels();
+                        g->draw_panels( true );
                         // The filter must have results, or simply be emptied or canceled,
                         // as this screen can't be reached without there being
                         // items available
@@ -698,7 +725,7 @@ void Pickup::pick_up( const tripoint &p, int min )
                     iScrollPos = 0;
                 }
                 wrefresh( g->w_terrain );
-                g->draw_panels();
+                g->draw_panels( true );
             }
             item &selected_item = stacked_here[matches[selected]].begin()->_item;
 
@@ -766,10 +793,19 @@ void Pickup::pick_up( const tripoint &p, int min )
                         wprintw( w_pickup, " - " );
                     }
                     std::string item_name;
-                    if( stacked_here[true_it].begin()->_item.ammo_type() == "money" ) {
+                    std::string stolen;
+                    bool stealing = false;
+                    if( this_item.has_owner() ) {
+                        const faction *item_fac = this_item.get_owner();
+                        if( item_fac != g->faction_manager_ptr->get( faction_id( "your_followers" ) ) ) {
+                            stolen = string_format( "<color_light_red>!</color>" );
+                            stealing = true;
+                        }
+                    }
+                    if( stacked_here[true_it].begin()->_item.ammo_current() == "money" ) {
                         //Count charges
                         // TODO: transition to the item_location system used for the inventory
-                        unsigned long charges_total = 0;
+                        unsigned int charges_total = 0;
                         for( const auto &item : stacked_here[true_it] ) {
                             charges_total += item._item.charges;
                         }
@@ -778,24 +814,46 @@ void Pickup::pick_up( const tripoint &p, int min )
                             item_name = stacked_here[true_it].begin()->_item.display_money( stacked_here[true_it].size(),
                                         charges_total );
                         } else {
-                            unsigned long charges = 0;
+                            unsigned int charges = 0;
                             int c = getitem[true_it].count;
                             for( auto it = stacked_here[true_it].begin(); it != stacked_here[true_it].end() &&
                                  c > 0; ++it, --c ) {
                                 charges += it->_item.charges;
                             }
-                            item_name = string_format( _( "%s of %s" ),
-                                                       stacked_here[true_it].begin()->_item.display_money( getitem[true_it].count, charges ),
-                                                       format_money( charges_total ) );
+                            if( stealing ) {
+                                //~ %s %s of %s ""!20 Cash Cards of $200" - ! added if stealing.
+                                item_name = string_format( _( "%s %s of %s" ), stolen,
+                                                           stacked_here[true_it].begin()->_item.display_money( getitem[true_it].count, charges ),
+                                                           format_money( charges_total ) );
+                            } else {
+                                item_name = string_format( _( "%s of %s" ),
+                                                           stacked_here[true_it].begin()->_item.display_money( getitem[true_it].count, charges ),
+                                                           format_money( charges_total ) );
+                            }
                         }
                     } else {
-                        item_name = this_item.display_name( stacked_here[true_it].size() );
+                        if( stealing ) {
+                            item_name = string_format( "%s %s", stolen,
+                                                       this_item.display_name( stacked_here[true_it].size() ) );
+                        } else {
+                            item_name = this_item.display_name( stacked_here[true_it].size() );
+                        }
                     }
                     if( stacked_here[true_it].size() > 1 ) {
-                        item_name = string_format( "%d %s", stacked_here[true_it].size(), item_name );
+                        if( stealing ) {
+                            item_name = string_format( "%s %d %s", stolen, stacked_here[true_it].size(), item_name );
+                        } else {
+                            item_name = string_format( "%d %s", stacked_here[true_it].size(), item_name );
+                        }
                     }
                     if( get_option<bool>( "ITEM_SYMBOLS" ) ) {
-                        item_name = string_format( "%s %s", this_item.symbol(), item_name );
+                        if( stealing ) {
+                            item_name = string_format( "%s %s %s", stolen, this_item.symbol().c_str(),
+                                                       item_name.c_str() );
+                        } else {
+                            item_name = string_format( "%s %s", this_item.symbol().c_str(),
+                                                       item_name );
+                        }
                     }
                     trim_and_print( w_pickup, 1 + ( cur_it % maxitems ), 6, pickupW - 4, icolor,
                                     item_name );

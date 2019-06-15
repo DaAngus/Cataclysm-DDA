@@ -30,7 +30,9 @@
       [ "elec_jackhammer", 40 ],
       [ "metal_smoother", 90 ],
       [ "jackhammer", 40 ],
-      [ "toolbox", 25 ]
+      [ "toolbox", 25 ],
+      [ "recharge_station", 10 ],
+      [ "angular_grinder", 30 ]
     ]
   },
   {
@@ -52,7 +54,11 @@
       [ "funnel", 50 ],
       [ "crowbar", 10 ],
       [ "thermometer", 5 ],
-      [ "multitool", 10 ]
+      [ "multitool", 10 ],
+      [ "recharge_station", 10 ],
+      [ "hand_crank_charger", 25 ],
+      [ "metal_file", 10 ],
+      [ "hand_vice", 10 ]
     ]
   },
   {
@@ -121,7 +127,9 @@
       [ "heavy_flashlight", 60 ],
       [ "magnifying_glass", 20 ],
       [ "soldering_iron", 150 ],
-      [ "cordless_drill", 100 ]
+      [ "cordless_drill", 100 ],
+      [ "pin_reamer", 30 ],
+      [ "hand_vice", 10 ]
     ]
   },
   {
@@ -132,7 +140,9 @@
       { "group": "tools_common", "prob": 100 },
       [ "soldering_iron", 100 ],
       [ "magnifying_glass", 100 ],
-      [ "voltmeter", 100 ]
+      [ "voltmeter", 100 ],
+      [ "recharge_station", 10 ],
+      [ "hand_crank_charger", 40 ]
     ]
   },
   {
@@ -174,7 +184,9 @@
       { "item": "weldtank", "prob": 60, "count": [ 1, 2 ] },
       { "item": "tinyweldtank", "prob": 60, "count": [ 1, 3 ] },
       [ "polisher", 70 ],
-      [ "welder", 10 ]
+      [ "angular_grinder", 5 ],
+      [ "welder", 10 ],
+      [ "hand_vice", 10 ]
     ]
   },
   {
@@ -248,7 +260,14 @@
       [ "ref_lighter", 20 ],
       [ "signal_flare", 20 ],
       [ "sm_extinguisher", 20 ],
-      [ "whistle", 20 ]
+      [ "whistle", 20 ],
+      [ "hand_crank_charger", 15 ],
+      [ "flint_steel", 5 ],
+      [ "chem_hexamine", 10 ],
+      [ "esbit_stove", 15 ],
+      [ "mess_tin", 5 ],
+      [ "riding_saddle", 3 ],
+      [ "saddlebag", 5 ]
     ]
   },
   {
@@ -257,10 +276,15 @@
     "items": [
       [ "needle_curved", 30 ],
       [ "scissors", 1000 ],
-      [ "sewing_kit", 100 ],
-      [ "tailors_kit", 30 ],
+      [ "sewing_kit", 120 ],
+      [ "tailors_kit", 10 ],
       [ "knitting_needles", 20 ]
     ]
+  },
+  {
+    "id": "tools_commercial_tailor",
+    "type": "item_group",
+    "items": [ [ "needle_curved", 30 ], [ "scissors", 1000 ], [ "sewing_kit", 10 ], [ "tailors_kit", 120 ] ]
   },
   {
     "type": "item_group",
@@ -319,7 +343,7 @@
       [ "syringe", 4 ],
       [ "xacto", 4 ],
       [ "cotton_ball", 4 ],
-      [ "battery", 50 ]
+      { "group": "ammo_any_batteries_full", "prob": 50 }
     ]
   },
   {
@@ -334,7 +358,10 @@
       [ "hacksaw", 50 ],
       [ "chipper", 60 ],
       [ "boltcutters", 50 ],
-      [ "screwdriver", 35 ]
+      [ "screwdriver", 35 ],
+      [ "pin_reamer", 10 ],
+      [ "metal_file", 10 ],
+      [ "hand_vice", 20 ]
     ]
   },
   {
@@ -346,7 +373,21 @@
       [ "trimmer_off", 40 ],
       [ "jackhammer", 50 ],
       [ "elec_jackhammer", 50 ],
-      [ "circsaw_off", 10 ]
+      [ "circsaw_off", 10 ],
+      [ "angular_grinder", 20 ]
+    ]
+  },
+  {
+    "id": "tools_tree_cutting",
+    "type": "item_group",
+    "//": "Axes and saws.",
+    "items": [
+      [ "ax", 100 ],
+      [ "chainsaw_off", 80 ],
+      [ "saw", 100 ],
+      [ "circsaw_off", 50 ],
+      [ "circsaw_blade", 10 ],
+      [ "elec_chainsaw_off", 35 ]
     ]
   }
 ]

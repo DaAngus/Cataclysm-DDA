@@ -3,11 +3,9 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <memory>
 
-#include "debug.h"
-#include "game.h"
 #include "input.h"
-#include "map.h"
 #include "output.h"
 #include "translations.h"
 
@@ -134,7 +132,7 @@ void dialogue_window::refresh_response_display()
 
 void dialogue_window::display_responses( const int hilight_lines,
         const std::vector<talk_data> &responses,
-        const long &ch )
+        const int &ch )
 {
     if( text_only ) {
         return;

@@ -1,5 +1,8 @@
 #include "output.h"
 
+#include <cctype>
+#include <errno.h>
+#include <cstdio>
 #include <algorithm>
 #include <cstdarg>
 #include <cstdlib>
@@ -10,6 +13,10 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <array>
+#include <memory>
+#include <type_traits>
+#include <cmath>
 
 #include "cata_utility.h"
 #include "catacharset.h"
@@ -57,7 +64,7 @@ extern bool use_tiles;
 extern bool test_mode;
 
 // utf8 version
-std::vector<std::string> foldstring( std::string str, int width, const char split )
+std::vector<std::string> foldstring( const std::string &str, int width, const char split )
 {
     std::vector<std::string> lines;
     if( width < 1 ) {
@@ -125,8 +132,7 @@ std::vector<std::string> split_by_color( const std::string &s )
     std::vector<std::string> ret;
     std::vector<size_t> tag_positions = get_tag_positions( s );
     size_t last_pos = 0;
-    std::vector<size_t>::iterator it;
-    for( it = tag_positions.begin(); it != tag_positions.end(); ++it ) {
+    for( std::vector<size_t>::iterator it = tag_positions.begin(); it != tag_positions.end(); ++it ) {
         ret.push_back( s.substr( last_pos, *it - last_pos ) );
         last_pos = *it;
     }
@@ -173,7 +179,7 @@ static void update_color_stack( std::stack<nc_color> &color_stack, const std::st
 }
 
 void print_colored_text( const catacurses::window &w, int y, int x, nc_color &color,
-                         nc_color base_color, const std::string &text )
+                         const nc_color &base_color, const std::string &text )
 {
     if( y > -1 && x > -1 ) {
         wmove( w, y, x );
@@ -246,7 +252,7 @@ void trim_and_print( const catacurses::window &w, int begin_y, int begin_x, int 
 }
 
 int print_scrollable( const catacurses::window &w, int begin_line, const std::string &text,
-                      nc_color base_color, const std::string &scroll_msg )
+                      const nc_color &base_color, const std::string &scroll_msg )
 {
     const size_t wwidth = getmaxx( w );
     const auto text_lines = foldstring( text, wwidth );
@@ -274,7 +280,7 @@ int print_scrollable( const catacurses::window &w, int begin_line, const std::st
 
 // returns number of printed lines
 int fold_and_print( const catacurses::window &w, int begin_y, int begin_x, int width,
-                    nc_color base_color, const std::string &text, const char split )
+                    const nc_color &base_color, const std::string &text, const char split )
 {
     nc_color color = base_color;
     std::vector<std::string> textformatted = foldstring( text, width, split );
@@ -285,7 +291,7 @@ int fold_and_print( const catacurses::window &w, int begin_y, int begin_x, int w
 }
 
 int fold_and_print_from( const catacurses::window &w, int begin_y, int begin_x, int width,
-                         int begin_line, nc_color base_color, const std::string &text )
+                         int begin_line, const nc_color &base_color, const std::string &text )
 {
     const int iWinHeight = getmaxy( w );
     std::stack<nc_color> color_stack;
@@ -322,8 +328,7 @@ int fold_and_print_from( const catacurses::window &w, int begin_y, int begin_x, 
 }
 
 void multipage( const catacurses::window &w, const std::vector<std::string> &text,
-                const std::string &caption,
-                int begin_y )
+                const std::string &caption, int begin_y )
 {
     int height = getmaxy( w );
     int width = getmaxx( w );
@@ -381,7 +386,7 @@ std::string name_and_value( const std::string &name, int value, int field_width 
     return name_and_value( name, string_format( "%d", value ), field_width );
 }
 
-void center_print( const catacurses::window &w, const int y, const nc_color FG,
+void center_print( const catacurses::window &w, const int y, const nc_color &FG,
                    const std::string &text )
 {
     int window_width = getmaxx( w );
@@ -396,7 +401,7 @@ void center_print( const catacurses::window &w, const int y, const nc_color FG,
 }
 
 int right_print( const catacurses::window &w, const int line, const int right_indent,
-                 const nc_color FG, const std::string &text )
+                 const nc_color &FG, const std::string &text )
 {
     const int available_width = std::max( 1, getmaxx( w ) - right_indent );
     const int x = std::max( 0, available_width - utf8_width( text, true ) );
@@ -404,14 +409,14 @@ int right_print( const catacurses::window &w, const int line, const int right_in
     return x;
 }
 
-void wputch( const catacurses::window &w, nc_color FG, long ch )
+void wputch( const catacurses::window &w, nc_color FG, int ch )
 {
     wattron( w, FG );
     waddch( w, ch );
     wattroff( w, FG );
 }
 
-void mvwputch( const catacurses::window &w, int y, int x, nc_color FG, long ch )
+void mvwputch( const catacurses::window &w, int y, int x, nc_color FG, int ch )
 {
     wattron( w, FG );
     mvwaddch( w, y, x, ch );
@@ -425,7 +430,7 @@ void mvwputch( const catacurses::window &w, int y, int x, nc_color FG, const std
     wattroff( w, FG );
 }
 
-void mvwputch_inv( const catacurses::window &w, int y, int x, nc_color FG, long ch )
+void mvwputch_inv( const catacurses::window &w, int y, int x, nc_color FG, int ch )
 {
     nc_color HC = invert_color( FG );
     wattron( w, HC );
@@ -441,7 +446,7 @@ void mvwputch_inv( const catacurses::window &w, int y, int x, nc_color FG, const
     wattroff( w, HC );
 }
 
-void mvwputch_hi( const catacurses::window &w, int y, int x, nc_color FG, long ch )
+void mvwputch_hi( const catacurses::window &w, int y, int x, nc_color FG, int ch )
 {
     nc_color HC = hilite( FG );
     wattron( w, HC );
@@ -642,7 +647,7 @@ std::vector<std::string> get_hotkeys( const std::string &s )
     return hotkeys;
 }
 
-long popup( const std::string &text, PopupFlags flags )
+int popup( const std::string &text, PopupFlags flags )
 {
     query_popup pop;
     pop.message( "%s", text );
@@ -929,10 +934,10 @@ input_event draw_item_info( const catacurses::window &win, const std::string &sI
             selected++;
             werase( win );
         } else if( selected > 0 && ( ch == '\n' || ch == KEY_RIGHT ) ) {
-            result = input_event( static_cast<long>( '\n' ), CATA_INPUT_KEYBOARD );
+            result = input_event( static_cast<int>( '\n' ), CATA_INPUT_KEYBOARD );
             break;
         } else if( selected == KEY_LEFT ) {
-            result = input_event( static_cast<long>( ' ' ), CATA_INPUT_KEYBOARD );
+            result = input_event( static_cast<int>( ' ' ), CATA_INPUT_KEYBOARD );
             break;
         } else {
             break;
@@ -971,7 +976,7 @@ char rand_char()
 
 // this translates symbol y, u, n, b to NW, NE, SE, SW lines correspondingly
 // h, j, c to horizontal, vertical, cross correspondingly
-long special_symbol( long sym )
+int special_symbol( int sym )
 {
     switch( sym ) {
         case 'j':
@@ -1019,7 +1024,7 @@ std::string trim_punctuation_marks( const std::string &s )
     } );
 }
 
-typedef std::string::value_type char_t;
+using char_t = std::string::value_type;
 std::string to_upper_case( const std::string &s )
 {
     std::string res;

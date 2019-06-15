@@ -16,6 +16,7 @@ Anjuta*
 /WinDepend/
 /bindist/
 /build/
+/build-start-time
 /cmake-build-debug/
 /config/
 /data/*.template
@@ -52,6 +53,7 @@ logg.txt
 *.ilk
 *.opensdf
 *.pdb
+*.lib
 *.sdf
 *.suo
 *.user
@@ -175,3 +177,8 @@ Xcode/
 
 # gdb
 .gdb_history
+
+# Flatpak build artifacts
+/.flatpak-builder/
+/repo/
+/build-dir/
