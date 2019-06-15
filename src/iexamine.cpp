@@ -831,7 +831,7 @@ void iexamine::cardreader_foodplace( player &p, const tripoint &examp )
         if( open ) {
             add_msg( _( "You press your face on the reader." ) );
             add_msg( m_good, _( "The nearby doors are unlocked." ) );
-            sounds::sound( examp, 6, sounds::sound_t::speech, "\"Hello Foodperson.  Welcome home.\"", true,
+            sounds::sound( examp, 6, sounds::sound_t::speech, _( "\"Hello Foodperson.  Welcome home.\"" ), true,
                            "speech", "welcome" );
         } else {
             add_msg( _( "The nearby doors are already unlocked." ) );
@@ -850,11 +850,11 @@ void iexamine::cardreader_foodplace( player &p, const tripoint &examp )
     } else if( p.has_amount( itype_id( "foodperson_mask" ), 1 ) ||
                p.has_amount( itype_id( "foodperson_mask_on" ), 1 ) ) {
         sounds::sound( examp, 6, sounds::sound_t::speech,
-                       "\"FOODPERSON DETECTED.  Please make yourself presentable.\"", true,
+                       _( "\"FOODPERSON DETECTED.  Please make yourself presentable.\"" ), true,
                        "speech", "welcome" );
     } else {
         sounds::sound( examp, 6, sounds::sound_t::speech,
-                       "\"Your face is inadequate.  Please go away.\"", true,
+                       _( "\"Your face is inadequate.  Please go away.\"" ), true,
                        "speech", "welcome" );
         p.assign_activity( activity_id( "ACT_HACK_DOOR" ), to_moves<int>( 5_minutes ) );
         p.activity.placement = examp;

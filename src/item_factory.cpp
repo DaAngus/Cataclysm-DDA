@@ -53,7 +53,7 @@ static std::set<std::string> repair_actions;
 
 static DynamicDataLoader::deferred_json deferred;
 
-std::unique_ptr<Item_factory> item_controller( new Item_factory() );
+std::unique_ptr<Item_factory> item_controller = std::make_unique<Item_factory>();
 
 static const std::string calc_category( const itype &obj );
 static void set_allergy_flags( itype &item_template );
@@ -1307,7 +1307,7 @@ void Item_factory::load( islot_ammo &slot, JsonObject &jo, const std::string &sr
     assign( jo, "range", slot.range, strict, 0 );
     assign( jo, "dispersion", slot.dispersion, strict, 0 );
     assign( jo, "recoil", slot.recoil, strict, 0 );
-    assign( jo, "count", slot.def_charges, strict, 1L );
+    assign( jo, "count", slot.def_charges, strict, 1 );
     assign( jo, "loudness", slot.loudness, strict, 0 );
     assign( jo, "effects", slot.ammo_effects, strict );
     assign( jo, "prop_damage", slot.prop_damage, strict );
@@ -1630,7 +1630,7 @@ void Item_factory::load( islot_comestible &slot, JsonObject &jo, const std::stri
 
     assign( jo, "comestible_type", slot.comesttype, strict );
     assign( jo, "tool", slot.tool, strict );
-    assign( jo, "charges", slot.def_charges, strict, 1L );
+    assign( jo, "charges", slot.def_charges, strict, 1 );
     assign( jo, "quench", slot.quench, strict );
     assign( jo, "fun", slot.fun, strict );
     assign( jo, "stim", slot.stim, strict );
