@@ -1,3 +1,9 @@
+# Anjuta
+Anjuta
+*.Anjuta
+Anjuta*
+
+
 !src/chkjson
 *.7z
 *.a
