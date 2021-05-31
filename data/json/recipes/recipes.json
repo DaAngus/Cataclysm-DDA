@@ -61,7 +61,6 @@
     "id": "CC_ELECTRONIC",
     "recipe_subcategories": [
       "CSC_ALL",
-      "CSC_ELECTRONIC_CBMS",
       "CSC_ELECTRONIC_TOOLS",
       "CSC_ELECTRONIC_PARTS",
       "CSC_ELECTRONIC_LIGHTING",
@@ -103,7 +102,7 @@
   {
     "type": "recipe_category",
     "id": "CC_ANIMALS",
-    "recipe_subcategories": [ "CSC_ALL", "CSC_ANIMALS_CANINE ARMOR" ]
+    "recipe_subcategories": [ "CSC_ALL", "CSC_ANIMALS_CANINE ARMOR", "CSC_ANIMALS_EQUINE ARMOR", "CSC_ANIMALS_EQUINE STORAGE" ]
   },
   {
     "type": "recipe_category",

@@ -11,6 +11,11 @@
   },
   {
     "type": "overmap_location",
+    "id": "forest_with_swamp",
+    "terrains": [ "forest", "forest_thick", "forest_water" ]
+  },
+  {
+    "type": "overmap_location",
     "id": "forest",
     "terrains": [ "forest", "forest_thick", "forest_trail" ]
   },
@@ -23,6 +28,16 @@
     "type": "overmap_location",
     "id": "land",
     "terrains": [ "forest", "forest_thick", "forest_water", "field", "forest_trail" ]
+  },
+  {
+    "type": "overmap_location",
+    "id": "special_field",
+    "terrains": [ "special_field" ]
+  },
+  {
+    "type": "overmap_location",
+    "id": "special_forest",
+    "terrains": [ "special_forest", "special_forest_thick" ]
   },
   {
     "type": "overmap_location",
@@ -48,12 +63,12 @@
   {
     "type": "overmap_location",
     "id": "subterranean",
-    "terrains": [ "cavern", "empty_rock", "hellmouth", "rift", "rock", "slimepit", "sewer" ]
+    "terrains": [ "cavern", "empty_rock", "rock", "slimepit", "sewer" ]
   },
   {
     "type": "overmap_location",
     "id": "subterranean_subway",
-    "terrains": [ "cavern", "empty_rock", "hellmouth", "rift", "rock", "slimepit", "subway" ]
+    "terrains": [ "cavern", "empty_rock", "rock", "slimepit", "subway" ]
   },
   {
     "type": "overmap_location",
@@ -89,6 +104,16 @@
     "type": "overmap_location",
     "id": "lake_surface",
     "terrains": [ "lake_surface" ]
+  },
+  {
+    "type": "overmap_location",
+    "id": "lake_water_cube",
+    "terrains": [ "lake_water_cube" ]
+  },
+  {
+    "type": "overmap_location",
+    "id": "lake_bed",
+    "terrains": [ "lake_bed" ]
   },
   {
     "type": "overmap_location",

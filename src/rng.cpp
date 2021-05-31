@@ -1,12 +1,12 @@
 #include "rng.h"
 
-#include <chrono>
-#include <climits>
-#include <cstdlib>
 #include <algorithm>
-#include <utility>
+#include <chrono>
+#include <cmath>
 
+#include "calendar.h"
 #include "cata_utility.h"
+#include "units.h"
 
 unsigned int rng_bits()
 {
@@ -31,6 +31,11 @@ double rng_float( double lo, double hi )
         std::swap( lo, hi );
     }
     return rng_real_dist( rng_get_engine(), std::uniform_real_distribution<>::param_type( lo, hi ) );
+}
+
+units::angle random_direction()
+{
+    return rng_float( 0_pi_radians, 2_pi_radians );
 }
 
 double normal_roll( double mean, double stddev )
@@ -59,6 +64,11 @@ double rng_exponential( double min, double mean )
 bool one_in( int chance )
 {
     return ( chance <= 1 || rng( 0, chance - 1 ) == 0 );
+}
+
+bool one_turn_in( const time_duration &duration )
+{
+    return one_in( to_turns<int>( duration ) );
 }
 
 bool x_in_y( double x, double y )
@@ -119,6 +129,7 @@ double rng_normal( double lo, double hi )
 
 cata_default_random_engine &rng_get_engine()
 {
+    // NOLINTNEXTLINE(cata-determinism)
     static cata_default_random_engine eng(
         std::chrono::high_resolution_clock::now().time_since_epoch().count() );
     return eng;

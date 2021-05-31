@@ -13,16 +13,17 @@ An NPC faction looks like this:
     "size": 100,
     "power": 100,
     "food_supply": 115200,
+    "lone_wolf_faction": true,
     "wealth": 75000000,
     "currency": "FMCNote",
-    "relations": { 
+    "relations": {
       "free_merchants": {
         "kill on sight": false,
         "watch your back": true,
         "share my stuff": true,
         "guard your stuff": true,
         "lets you in": true,
-        "defends your space": true, 
+        "defends your space": true,
         "knows your voice": true
       },
       "old_guard": {
@@ -48,7 +49,7 @@ Field | Meaning
 `"id"` | string, unique faction id
 `"name"` | string, the faction's common name
 `"likes_u"` | integer, the faction's starting opinion of the player.  `"likes_u"` can be increased or decreased in play.  If it goes below -10, members of the faction will be hostile.
-`"respects_u"` | integer, the faction's starting opinionof the player.  Has no meaningful effect in  game and may be removed in the future.
+`"respects_u"` | integer, the faction's starting opinion of the player.  Has no meaningful effect in game and may be removed in the future.
 `"known_by_u"` | boolean, whether the player has met members of the faction.  Can be changed in play.  Unknown factions will not be displayed in the faction menu.
 `"size"` | integer, an approximate count of the members of the faction.  Has no effect in play currently.
 `"power"` | integer, an approximation of the faction's power.  Has no effect in play currently.
@@ -57,6 +58,7 @@ Field | Meaning
 `"currency"` | string, the item `"id"` of the faction's preferred currency.  Faction shopkeeps will trade faction current at 100% value, for both selling and buying.
 `"relations"` | dictionary, a description of how the faction sees other factions.  See below
 `"mon_faction"` | string, optional.  The monster faction `"name"` of the monster faction that this faction counts as.  Defaults to "human" if unspecified.
+`"lone_wolf_faction"` | bool, optional. This is a proto/micro faction template that is used to generate 1-person factions for dynamically spawned NPCs, defaults to "false" if unspecified.
 
 ## Faction relations
 Factions can have relations with each other that apply to each member of the faction.  Faction relationships are not reciprocal: members of the Free Merchants will defend members of the Lobby Beggars, but members of the Lobby Beggars will not defend members of the Free Merchants.

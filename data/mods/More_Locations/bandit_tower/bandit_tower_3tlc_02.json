@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": "bandit_tower_3tlc",
-    "comment": "top left corner, third and odd level floors.",
+    "//": "top left corner, third and odd level floors.",
     "weight": 250,
     "method": "json",
     "object": {
@@ -36,7 +36,8 @@
       "rotation": 0,
       "palettes": [ "tri_tower", "upper_level", "bandit_tower_stuff" ],
       "terrain": { "8": "t_bridge", "k": "t_fence_barbed" },
-      "furniture": { "j": "f_canvas_floor" }
+      "furniture": { "j": "f_canvas_floor" },
+      "npcs": { "@": { "class": "thug" } }
     }
   }
 ]

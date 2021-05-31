@@ -1,31 +1,34 @@
 #pragma once
-#ifndef MAPDATA_H
-#define MAPDATA_H
+#ifndef CATA_SRC_MAPDATA_H
+#define CATA_SRC_MAPDATA_H
 
-#include <cstddef>
 #include <array>
 #include <bitset>
+#include <cstddef>
+#include <iosfwd>
 #include <set>
-#include <vector>
 #include <string>
+#include <vector>
 
+#include "calendar.h"
 #include "color.h"
-#include "int_id.h"
-#include "optional.h"
-#include "string_id.h"
+#include "translations.h"
 #include "type_id.h"
 #include "units.h"
+#include "value_ptr.h"
+
+struct ter_t;
+
+using ter_str_id = string_id<ter_t>;
 
 class JsonObject;
-struct itype;
-struct ter_t;
-struct furn_t;
 class player;
+struct furn_t;
+struct itype;
 struct tripoint;
 
 using iexamine_function = void ( * )( player &, const tripoint & );
-
-using itype_id = std::string;
+using iexamine_function_ref = void( & )( player &, const tripoint & );
 
 struct map_bash_info {
     int str_min;            // min str(*) required to bash
@@ -38,18 +41,26 @@ struct map_bash_info {
     int sound_vol;          // sound volume of breaking terrain/furniture
     int sound_fail_vol;     // sound volume on fail
     int collapse_radius;    // Radius of the tent supported by this tile
+    int fd_bash_move_cost = 100; // cost to bash a field
     bool destroy_only;      // Only used for destroying, not normally bashable
     bool bash_below;        // This terrain is the roof of the tile below it, try to destroy that too
-    std::string drop_group; // item group of items that are dropped when the object is bashed
-    std::string sound;      // sound made on success ('You hear a "smash!"')
-    std::string sound_fail; // sound  made on fail
+    item_group_id drop_group; // item group of items that are dropped when the object is bashed
+    translation sound;      // sound made on success ('You hear a "smash!"')
+    translation sound_fail; // sound  made on fail
+    translation field_bash_msg_success; // message upon successfully bashing a field
     ter_str_id ter_set;    // terrain to set (REQUIRED for terrain))
     ter_str_id ter_set_bashed_from_above; // terrain to set if bashed from above (defaults to ter_set)
     furn_str_id furn_set;   // furniture to set (only used by furniture, not terrain)
     // ids used for the special handling of tents
     std::vector<furn_str_id> tent_centers;
     map_bash_info();
-    bool load( JsonObject &jsobj, const std::string &member, bool is_furniture );
+    enum map_object_type {
+        furniture = 0,
+        terrain,
+        field
+    };
+    bool load( const JsonObject &jsobj, const std::string &member, map_object_type obj_type,
+               const std::string &context );
 };
 struct map_deconstruct_info {
     // Only if true, the terrain/furniture can be deconstructed
@@ -57,11 +68,12 @@ struct map_deconstruct_info {
     // This terrain provided a roof, we need to tear it down now
     bool deconstruct_above;
     // items you get when deconstructing.
-    std::string drop_group;
+    item_group_id drop_group;
     ter_str_id ter_set;    // terrain to set (REQUIRED for terrain))
     furn_str_id furn_set;    // furniture to set (only used by furniture, not terrain)
     map_deconstruct_info();
-    bool load( JsonObject &jsobj, const std::string &member, bool is_furniture );
+    bool load( const JsonObject &jsobj, const std::string &member, bool is_furniture,
+               const std::string &context );
 };
 struct furn_workbench_info {
     // Base multiplier applied for crafting here
@@ -70,7 +82,7 @@ struct furn_workbench_info {
     units::mass allowed_mass;
     units::volume allowed_volume;
     furn_workbench_info();
-    bool load( JsonObject &jsobj, const std::string &member );
+    bool load( const JsonObject &jsobj, const std::string &member );
 };
 struct plant_data {
     // What the furniture turns into when it grows or you plant seeds in it
@@ -82,7 +94,7 @@ struct plant_data {
     // What percent of the normal harvest this crop gives
     float harvest_multiplier;
     plant_data();
-    bool load( JsonObject &jsobj, const std::string &member );
+    bool load( const JsonObject &jsobj, const std::string &member );
 };
 
 /*
@@ -102,6 +114,7 @@ struct plant_data {
  * SEALED - Can't use 'e' to retrieve items, must smash open first
  * NOITEM - Items 'fall off' this space
  * NO_SIGHT - When on this tile sight is reduced to 1
+ * NO_SCENT - Scent on this tile (and thus scent diffusing through it) is reduced to 0. This acts like a wall for scent
  * MOUNTABLE - Player can fire mounted weapons from here (e.g. M2 Browning)
  * DESTROY_ITEM - Items that land here are destroyed
  * GOES_DOWN - Can use '>' to go down a level
@@ -160,6 +173,7 @@ enum ter_bitflags : int {
     TFLAG_MINEABLE,
     TFLAG_NOITEM,
     TFLAG_NO_SIGHT,
+    TFLAG_NO_SCENT,
     TFLAG_SEALED,
     TFLAG_ALLOW_FIELD_EFFECT,
     TFLAG_LIQUID,
@@ -177,6 +191,8 @@ enum ter_bitflags : int {
     TFLAG_UNSTABLE,
     TFLAG_WALL,
     TFLAG_DEEP_WATER,
+    TFLAG_SHALLOW_WATER,
+    TFLAG_NO_SHOOT,
     TFLAG_CURRENT,
     TFLAG_HARVESTED,
     TFLAG_PERMEABLE,
@@ -187,11 +203,18 @@ enum ter_bitflags : int {
     TFLAG_GOES_UP,
     TFLAG_NO_FLOOR,
     TFLAG_SEEN_FROM_ABOVE,
+    TFLAG_RAMP_DOWN,
+    TFLAG_RAMP_UP,
     TFLAG_RAMP,
     TFLAG_HIDE_PLACE,
     TFLAG_BLOCK_WIND,
     TFLAG_FLAT,
     TFLAG_RAIL,
+    TFLAG_THIN_OBSTACLE,
+    TFLAG_SMALL_PASSAGE,
+    TFLAG_Z_TRANSPARENT,
+    TFLAG_SUN_ROOF_ABOVE,
+    TFLAG_FUNGUS,
 
     NUM_TERFLAGS
 };
@@ -206,9 +229,12 @@ enum ter_connects : int {
     TERCONN_CHAINFENCE,
     TERCONN_WOODFENCE,
     TERCONN_RAILING,
+    TERCONN_POOLWATER,
     TERCONN_WATER,
     TERCONN_PAVEMENT,
     TERCONN_RAIL,
+    TERCONN_COUNTER,
+    TERCONN_CANVAS_WALL,
 };
 
 struct map_data_common_t {
@@ -222,46 +248,69 @@ struct map_data_common_t {
         friend furn_t null_furniture_t();
         friend ter_t null_terrain_t();
         // The (untranslated) plaintext name of the terrain type the user would see (i.e. dirt)
-        std::string name_;
+        translation name_;
+
+        // Hardcoded examination function
+        iexamine_function examine_func; // What happens when the terrain/furniture is examined
 
     private:
         std::set<std::string> flags;    // string flags which possibly refer to what's documented above.
         std::bitset<NUM_TERFLAGS> bitflags; // bitfield of -certain- string flags which are heavily checked
 
     public:
+        ter_str_id curtain_transform;
+
+        bool has_curtains() const {
+            return !( curtain_transform.is_empty() || curtain_transform.is_null() );
+        }
+
+    public:
         std::string name() const;
 
-        enum { SEASONS_PER_YEAR = 4 };
         /*
-        * The symbol drawn on the screen for the terrain. Please note that there are extensive rules
-        * as to which possible object/field/entity in a single square gets drawn and that some symbols
-        * are "reserved" such as * and % to do programmatic behavior.
+        * The symbol drawn on the screen for the terrain. Please note that
+        * there are extensive rules as to which possible object/field/entity in
+        * a single square gets drawn and that some symbols are "reserved" such
+        * as * and % to do programmatic behavior.
         */
-        std::array<int, SEASONS_PER_YEAR> symbol_;
+        std::array<int, NUM_SEASONS> symbol_;
 
-        int movecost;   // The amount of movement points required to pass this terrain by default.
-        int coverage; // The coverage percentage of a furniture piece of terrain. <30 won't cover from sight.
-        units::volume max_volume; // Maximal volume of items that can be stored in/on this furniture
+        bool can_examine() const;
+        bool has_examine( iexamine_function_ref func ) const;
+        void set_examine( iexamine_function_ref func );
+        void examine( player &, const tripoint & ) const;
 
-        std::string description;
+        int light_emitted = 0;
+        // The amount of movement points required to pass this terrain by default.
+        int movecost = 0;
+        int heat_radiation = 0;
+        // The coverage percentage of a furniture piece of terrain. <30 won't cover from sight.
+        int coverage = 0;
+        // Maximal volume of items that can be stored in/on this furniture
+        units::volume max_volume = 1000_liter;
 
-        std::array<nc_color, SEASONS_PER_YEAR> color_; //The color the sym will draw in on the GUI.
-        void load_symbol( JsonObject &jo );
+        translation description;
+
+        // The color the sym will draw in on the GUI.
+        std::array<nc_color, NUM_SEASONS> color_;
+        void load_symbol( const JsonObject &jo );
 
         std::string looks_like;
-
-        iexamine_function examine; //What happens when the terrain/furniture is examined
 
         /**
          * When will this terrain/furniture get harvested and what will drop?
          * Note: This excludes items that take extra tools to harvest.
          */
-        std::array<harvest_id, SEASONS_PER_YEAR> harvest_by_season = {{
+        std::array<harvest_id, NUM_SEASONS> harvest_by_season = {{
                 harvest_id::NULL_ID(), harvest_id::NULL_ID(), harvest_id::NULL_ID(), harvest_id::NULL_ID()
             }
         };
 
-        bool transparent;
+        bool transparent = false;
+
+        const std::set<std::string> &get_flags() const {
+            return flags;
+        }
 
         bool has_flag( const std::string &flag ) const {
             return flags.count( flag ) > 0;
@@ -273,14 +322,14 @@ struct map_data_common_t {
 
         void set_flag( const std::string &flag );
 
-        int connect_group;
+        int connect_group = 0;
 
         void set_connects( const std::string &connect_group_string );
 
         bool connects( int &ret ) const;
 
         bool connects_to( int test_connect_group ) const {
-            return ( connect_group != TERCONN_NONE ) && ( connect_group == test_connect_group );
+            return connect_group != TERCONN_NONE && connect_group == test_connect_group;
         }
 
         int symbol() const;
@@ -297,7 +346,12 @@ struct map_data_common_t {
 
         bool was_loaded = false;
 
-        virtual void load( JsonObject &jo, const std::string &src );
+        bool is_flammable() const {
+            return has_flag( TFLAG_FLAMMABLE ) || has_flag( TFLAG_FLAMMABLE_ASH ) ||
+                   has_flag( TFLAG_FLAMMABLE_HARD );
+        }
+
+        virtual void load( const JsonObject &jo, const std::string & );
         virtual void check() const;
 };
 
@@ -316,11 +370,14 @@ struct ter_t : map_data_common_t {
 
     trap_id trap; // The id of the trap located at this terrain. Limit one trap per tile currently.
 
+    std::set<emit_id> emissions;
+    std::set<itype_id> allowed_template_id;
+
     ter_t();
 
     static size_t count();
 
-    void load( JsonObject &jo, const std::string &src ) override;
+    void load( const JsonObject &jo, const std::string &src ) override;
     void check() const override;
 };
 
@@ -336,18 +393,23 @@ struct furn_t : map_data_common_t {
     furn_str_id id;
     furn_str_id open;  // Open action: transform into furniture with matching id
     furn_str_id close; // Close action: transform into furniture with matching id
-    std::string crafting_pseudo_item;
+    itype_id crafting_pseudo_item;
     units::volume keg_capacity = 0_ml;
     int comfort = 0;
     int floor_bedding_warmth = 0;
+    /** Emissions of furniture */
+    std::set<emit_id> emissions;
+
     int bonus_fire_warmth_feet = 300;
     itype_id deployed_item; // item id string used to create furniture
 
-    int move_str_req; //The amount of strength required to move through this furniture easily.
+    int move_str_req = 0; //The amount of strength required to move through this furniture easily.
 
-    cata::optional<furn_workbench_info> workbench;
+    cata::value_ptr<furn_workbench_info> workbench;
 
-    cata::optional<plant_data> plant;
+    cata::value_ptr<plant_data> plant;
+
+    cata::value_ptr<float> surgery_skill_multiplier;
 
     // May return NULL
     const itype *crafting_pseudo_item_type() const;
@@ -358,12 +420,14 @@ struct furn_t : map_data_common_t {
 
     static size_t count();
 
-    void load( JsonObject &jo, const std::string &src ) override;
+    bool is_movable() const;
+
+    void load( const JsonObject &jo, const std::string &src ) override;
     void check() const override;
 };
 
-void load_furniture( JsonObject &jo, const std::string &src );
-void load_terrain( JsonObject &jo, const std::string &src );
+void load_furniture( const JsonObject &jo, const std::string &src );
+void load_terrain( const JsonObject &jo, const std::string &src );
 
 void verify_furniture();
 void verify_terrain();
@@ -385,7 +449,7 @@ extern ter_id t_null,
        t_rock_floor,
        t_grass, t_grass_long, t_grass_tall, t_grass_golf, t_grass_dead, t_grass_white, t_moss,
        t_metal_floor,
-       t_pavement, t_pavement_y, t_sidewalk, t_concrete,
+       t_pavement, t_pavement_y, t_sidewalk, t_concrete, t_zebra,
        t_thconc_floor, t_thconc_floor_olight, t_strconc_floor,
        t_floor, t_floor_waxed,
        t_dirtfloor,//Dirt floor(Has roof)
@@ -405,8 +469,8 @@ extern ter_id t_null,
        t_wall_glass,
        t_wall_glass_alarm,
        t_reinforced_glass, t_reinforced_glass_shutter, t_reinforced_glass_shutter_open,
-       t_reinforced_door_glass_o,
-       t_reinforced_door_glass_c,
+       t_laminated_glass, t_ballistic_glass,
+       t_reinforced_door_glass_o, t_reinforced_door_glass_c,
        t_bars,
        t_reb_cage,
        t_door_c, t_door_c_peep, t_door_b, t_door_b_peep, t_door_o, t_door_o_peep,
@@ -419,9 +483,12 @@ extern ter_id t_null,
        t_door_glass_c, t_door_glass_o, t_door_glass_frosted_c, t_door_glass_frosted_o,
        t_portcullis,
        t_recycler, t_window, t_window_taped, t_window_domestic, t_window_domestic_taped, t_window_open,
-       t_curtains,
+       t_curtains, t_window_bars_curtains, t_window_bars_domestic,
        t_window_alarm, t_window_alarm_taped, t_window_empty, t_window_frame, t_window_boarded,
        t_window_boarded_noglass, t_window_bars_alarm, t_window_bars,
+       t_metal_grate_window, t_metal_grate_window_with_curtain, t_metal_grate_window_with_curtain_open,
+       t_metal_grate_window_noglass, t_metal_grate_window_with_curtain_noglass,
+       t_metal_grate_window_with_curtain_open_noglass,
        t_window_stained_green, t_window_stained_red, t_window_stained_blue,
        t_window_no_curtains, t_window_no_curtains_open, t_window_no_curtains_taped,
        t_rock, t_fault,
@@ -498,7 +565,7 @@ furn_id refers to a position in the furnlist[] where the furn_t struct is stored
 about ter_id above.
 */
 extern furn_id f_null,
-       f_hay, f_cattails,
+       f_hay, f_cattails, f_lotus, f_lilypad,
        f_rubble, f_rubble_rock, f_wreckage, f_ash,
        f_barricade_road, f_sandbag_half, f_sandbag_wall,
        f_bulletin,
@@ -527,6 +594,7 @@ extern furn_id f_null,
        f_flower_marloss,
        f_tatami,
        f_kiln_empty, f_kiln_full, f_kiln_metal_empty, f_kiln_metal_full,
+       f_arcfurnace_empty, f_arcfurnace_full,
        f_smoking_rack, f_smoking_rack_active, f_metal_smoking_rack, f_metal_smoking_rack_active,
        f_water_mill, f_water_mill_active,
        f_wind_mill, f_wind_mill_active,
@@ -535,7 +603,10 @@ extern furn_id f_null,
        f_firering,
        f_tourist_table,
        f_camp_chair,
-       f_autodoc_couch;
+       f_sign,
+       f_gunsafe_ml, f_gunsafe_mj, f_gun_safe_el,
+       f_street_light, f_traffic_light,
+       f_console, f_console_broken;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// These are on their way OUT and only used in certain switch statements until they are rewritten.
@@ -545,4 +616,4 @@ void check_furniture_and_terrain();
 
 void finalize_furniture_and_terrain();
 
-#endif
+#endif // CATA_SRC_MAPDATA_H

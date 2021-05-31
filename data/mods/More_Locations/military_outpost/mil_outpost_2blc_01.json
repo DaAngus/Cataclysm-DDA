@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_2blc" ],
-    "comment": "second floor bottom left corner",
+    "//": "second floor bottom left corner",
     "method": "json",
     "weight": 250,
     "object": {
@@ -25,8 +25,8 @@
         "###||z.z..z..*.....||   ",
         "###||..z.z...*.....||   ",
         "###||.z....z.*.....||   ",
-        "###||.z..z...=....^||fff",
-        "###||..z..z..*..^.^||###",
+        "###||.z..z...=....x||fff",
+        "###||..z..z..*..x.x||###",
         "###|----------------|###",
         "###------------------###",
         "########################",

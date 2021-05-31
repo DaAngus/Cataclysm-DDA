@@ -1,24 +1,21 @@
 #pragma once
-#ifndef MORALE_H
-#define MORALE_H
+#ifndef CATA_SRC_MORALE_H
+#define CATA_SRC_MORALE_H
 
+#include <algorithm>
 #include <functional>
+#include <iosfwd>
 #include <map>
 #include <vector>
-#include <algorithm>
-#include <array>
-#include <string>
 
-#include "bodypart.h"
 #include "calendar.h"
 #include "morale_types.h"
-#include "string_id.h"
 #include "type_id.h"
 
-class item;
 class JsonIn;
-class JsonOut;
 class JsonObject;
+class JsonOut;
+class item;
 struct itype;
 struct morale_mult;
 
@@ -27,14 +24,15 @@ class player_morale
     public:
         player_morale();
 
-        player_morale( player_morale && ) = default;
+        player_morale( player_morale && ) noexcept = default;
         player_morale( const player_morale & ) = default;
         player_morale &operator =( player_morale && ) = default;
         player_morale &operator =( const player_morale & ) = default;
 
         /** Adds morale to existing or creates one */
-        void add( morale_type type, int bonus, int max_bonus = 0, time_duration duration = 6_minutes,
-                  time_duration decay_start = 3_minutes, bool capped = false, const itype *item_type = nullptr );
+        void add( const morale_type &type, int bonus, int max_bonus = 0,
+                  const time_duration &duration = 6_minutes, const time_duration &decay_start = 3_minutes,
+                  bool capped = false, const itype *item_type = nullptr );
         /** Sets the new level for the permanent morale, or creates one */
         void set_permanent( const morale_type &type, int bonus, const itype *item_type = nullptr );
         /** Returns bonus from specified morale */
@@ -46,9 +44,9 @@ class player_morale
         /** Returns overall morale level */
         int get_level() const;
         /** Ticks down morale counters and removes them */
-        void decay( time_duration ticks = 1_turns );
+        void decay( const time_duration &ticks = 1_turns );
         /** Displays morale screen */
-        void display( double focus_gain );
+        void display( int focus_eq, int pain_penalty, int fatigue_penalty );
         /** Returns false whether morale is inconsistent with the argument.
          *  Only permanent morale is checked */
         bool consistent_with( const player_morale &morale ) const;
@@ -59,24 +57,28 @@ class player_morale
         int get_total_positive_value() const;
         int get_total_negative_value() const;
 
+        /** Returns perceived pain. Only used in morale_test.cpp*/
+        int get_perceived_pain() const;
+
         void on_mutation_gain( const trait_id &mid );
         void on_mutation_loss( const trait_id &mid );
         void on_stat_change( const std::string &stat, int value );
         void on_item_wear( const item &it );
         void on_item_takeoff( const item &it );
-        void on_worn_item_transform( const item &it );
+        void on_worn_item_transform( const item &old_it, const item &new_it );
         void on_worn_item_washed( const item &it );
-        void on_effect_int_change( const efftype_id &eid, int intensity, body_part bp = num_bp );
+        void on_effect_int_change( const efftype_id &eid, int intensity,
+                                   const bodypart_id &bp = bodypart_id( "bp_null" ) );
 
         void store( JsonOut &jsout ) const;
-        void load( JsonObject &jsin );
+        void load( const JsonObject &jsin );
 
     private:
 
         class morale_point
         {
             public:
-                morale_point(
+                explicit morale_point(
                     const morale_type &type = MORALE_NULL,
                     const itype *item_type = nullptr,
                     int bonus = 0,
@@ -105,30 +107,31 @@ class player_morale
 
                 void add( int new_bonus, int new_max_bonus, time_duration new_duration,
                           time_duration new_decay_start, bool new_cap );
-                void decay( time_duration ticks = 1_turns );
+                void decay( const time_duration &ticks = 1_turns );
                 /*
-                 *contribution should be bettween [0,100] (inclusive)
+                 *contribution should be between [0,100] (inclusive)
                  */
                 void set_percent_contribution( double contribution );
-                double get_percent_contribution();
+                double get_percent_contribution() const;
             private:
                 morale_type type;
                 const itype *item_type;
 
-                int bonus;
-                time_duration duration;   // Zero duration == infinity
-                time_duration decay_start;
-                time_duration age;
+                int bonus = 0;
+                time_duration duration = 0_turns;   // Zero duration == infinity
+                time_duration decay_start = 0_turns;
+                time_duration age = 0_turns;
                 /**
                  *this point's percent contribution to the total positive or total negative morale effect
                  */
-                double percent_contribution;
+                double percent_contribution = 0;
 
                 /**
                  * Returns either new_time or remaining time (which one is greater).
                  * Only returns new time if same_sign is true
                  */
-                time_duration pick_time( time_duration current_time, time_duration new_time, bool same_sign ) const;
+                time_duration pick_time( const time_duration &current_time, const time_duration &new_time,
+                                         bool same_sign ) const;
                 /**
                  * Returns normalized bonus if either max_bonus != 0 or capped == true
                  */
@@ -143,6 +146,7 @@ class player_morale
         void set_worn( const item &it, bool worn );
         void set_mutation( const trait_id &mid, bool active );
         bool has_mutation( const trait_id &mid );
+        bool has_flag( const json_character_flag &flag );
 
         void remove_if( const std::function<bool( const morale_point & )> &func );
         void remove_expired();
@@ -171,32 +175,30 @@ class player_morale
                 hot( 0 ),
                 cold( 0 ) {}
         };
-        std::array<body_part_data, num_bp> body_parts;
+        std::map<bodypart_id, body_part_data> body_parts;
         body_part_data no_body_part;
 
         using mutation_handler = std::function<void ( player_morale * )>;
         struct mutation_data {
             public:
                 mutation_data() = default;
-                mutation_data( mutation_handler on_gain_and_loss ) :
+                explicit mutation_data( const mutation_handler &on_gain_and_loss ) :
                     on_gain( on_gain_and_loss ),
-                    on_loss( on_gain_and_loss ),
-                    active( false ) {}
-                mutation_data( mutation_handler on_gain, mutation_handler on_loss ) :
+                    on_loss( on_gain_and_loss ) {}
+                mutation_data( const mutation_handler &on_gain, const mutation_handler &on_loss ) :
                     on_gain( on_gain ),
-                    on_loss( on_loss ),
-                    active( false ) {}
+                    on_loss( on_loss ) {}
                 void set_active( player_morale *sender, bool new_active );
                 bool get_active() const;
                 void clear();
             private:
                 mutation_handler on_gain;
                 mutation_handler on_loss;
-                bool active;
+                bool active = false;
         };
         std::map<trait_id, mutation_data> mutations;
 
-        std::map<std::string, int> super_fancy_items;
+        std::map<itype_id, int> super_fancy_items;
 
         // Mutability is required for lazy initialization
         mutable int level;
@@ -208,4 +210,4 @@ class player_morale
         int perceived_pain;
 };
 
-#endif
+#endif // CATA_SRC_MORALE_H

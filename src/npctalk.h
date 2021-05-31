@@ -1,9 +1,11 @@
 #pragma once
-#ifndef NPCTALK_H
-#define NPCTALK_H
+#ifndef CATA_SRC_NPCTALK_H
+#define CATA_SRC_NPCTALK_H
 
 #include "type_id.h"
 
+class item;
+class json_talk_topic;
 class npc;
 class time_duration;
 
@@ -24,6 +26,8 @@ void buy_cow( npc & );
 void buy_chicken( npc & );
 void bionic_install( npc & );
 void bionic_remove( npc & );
+void dismount( npc & );
+void find_mount( npc & );
 
 void barber_beard( npc & );
 void barber_hair( npc & );
@@ -36,10 +40,21 @@ void buy_100_logs( npc & );
 void start_trade( npc & );
 void sort_loot( npc & );
 void do_construction( npc & );
+void do_mining( npc & );
+void do_read( npc & );
+void do_chop_plank( npc & );
+void do_vehicle_deconstruct( npc & );
+void do_vehicle_repair( npc & );
+void do_chop_trees( npc & );
+void do_fishing( npc & );
+void do_farming( npc & );
+void do_butcher( npc & );
 void revert_activity( npc & );
 void goto_location( npc & );
 void assign_base( npc & );
 void assign_guard( npc & );
+void assign_camp( npc & );
+void abandon_camp( npc & );
 void stop_guard( npc & );
 void end_conversation( npc & );
 void insult_combat( npc & );
@@ -56,6 +71,8 @@ void flee( npc & );
 void leave( npc & );                 // p becomes indifferent
 void stop_following( npc & );
 void stranger_neutral( npc & );      // p is now neutral towards you
+
+bool drop_stolen_item( item &cur_item, npc &p );
 
 void start_mugging( npc & );
 void player_leaving( npc & );
@@ -76,10 +93,15 @@ void set_npc_pickup( npc &p );
 void npc_die( npc &p );
 void npc_thankful( npc &p );
 void clear_overrides( npc &p );
-}
+} // namespace talk_function
 
 time_duration calc_skill_training_time( const npc &p, const skill_id &skill );
 int calc_skill_training_cost( const npc &p, const skill_id &skill );
+time_duration calc_proficiency_training_time( const npc &, const proficiency_id &proficiency );
+int calc_proficiency_training_cost( const npc &p, const proficiency_id &proficiency );
 time_duration calc_ma_style_training_time( const npc &, const matype_id & /* id */ );
 int calc_ma_style_training_cost( const npc &p, const matype_id & /* id */ );
-#endif
+
+const json_talk_topic *get_talk_topic( const std::string &id );
+
+#endif // CATA_SRC_NPCTALK_H

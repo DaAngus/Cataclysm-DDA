@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_ublc" ],
-    "comment": "underground bottom left corner",
+    "//": "underground bottom left corner",
     "method": "json",
     "weight": 250,
     "object": {
@@ -26,10 +26,10 @@
         "#################|      ",
         "#################|      ",
         "##------------###|  ----",
-        "##|Hhh^...h..-----  |###",
-        "##|H^huh.....+      |###",
-        "##|Hh^.......+      |###",
-        "##|^.h.^..h.^--------###",
+        "##|Hhhx...h..-----  |###",
+        "##|Hxhuh.....+      |###",
+        "##|Hhx.......+      |###",
+        "##|x.h.x..h.x--------###",
         "##------------##########",
         "########################"
       ],
@@ -38,7 +38,7 @@
         "h": { "item": { "item": "corpse", "amount": [ 1, 4 ] }, "fields": { "field": "fd_blood" } },
         "H": { "item": { "item": "corpse", "amount": [ 3, 9 ] }, "fields": { "field": "fd_blood" } }
       },
-      "place_fields": [ { "x": [ 2, 12 ], "y": [ 17, 22 ], "field": "fd_blood", "age": 2, "density": 2, "repeat": 20 } ]
+      "place_fields": [ { "x": [ 2, 12 ], "y": [ 17, 22 ], "field": "fd_blood", "age": 2, "intensity": 2, "repeat": 20 } ]
     }
   }
 ]

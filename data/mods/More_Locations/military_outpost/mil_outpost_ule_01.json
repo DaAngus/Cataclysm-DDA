@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_ule" ],
-    "comment": "underground left edge",
+    "//": "underground left edge",
     "method": "json",
     "weight": 250,
     "object": {
@@ -33,7 +33,8 @@
         "######|C.....|  |.......",
         "######|C.....|  |...TT.."
       ],
-      "palettes": [ "mil_outpost_underground" ]
+      "palettes": [ "mil_outpost_underground" ],
+      "furniture": { "8": "f_sandbag_half" }
     }
   }
 ]

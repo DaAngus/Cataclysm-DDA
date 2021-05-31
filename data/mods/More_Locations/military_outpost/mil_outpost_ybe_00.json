@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_ybe" ],
-    "comment": "yard bottom edge",
+    "//": "yard bottom edge",
     "method": "json",
     "weight": 250,
     "object": {
@@ -34,7 +34,7 @@
         ",,,,,,,,,,,,,,,,,,,,,,,,"
       ],
       "palettes": [ "mil_outpost_bandit" ],
-      "place_traps": [ { "x": [ 0, 23 ], "y": [ 5, 21 ], "trap": "tr_landmine", "chance": 85, "repeat": [ 45, 60 ] } ]
+      "place_traps": [ { "x": [ 0, 23 ], "y": [ 5, 21 ], "trap": "tr_landmine", "repeat": [ 45, 60 ] } ]
     }
   }
 ]

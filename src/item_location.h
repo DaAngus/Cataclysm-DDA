@@ -1,19 +1,19 @@
 #pragma once
-#ifndef ITEM_LOCATION_H
-#define ITEM_LOCATION_H
+#ifndef CATA_SRC_ITEM_LOCATION_H
+#define CATA_SRC_ITEM_LOCATION_H
 
-#include <list>
+#include <iosfwd>
 #include <memory>
-#include <string>
 
-#include "map_selector.h"
+#include "units_fwd.h"
 
-struct tripoint;
-class item;
 class Character;
-class vehicle_cursor;
 class JsonIn;
 class JsonOut;
+class item;
+class map_cursor;
+class vehicle_cursor;
+struct tripoint;
 
 /**
  * A lightweight handle to an item independent of it's location
@@ -28,34 +28,26 @@ class item_location
             invalid = 0,
             character = 1,
             map = 2,
-            vehicle = 3
+            vehicle = 3,
+            container = 4
         };
 
         item_location();
-        item_location( const item_location & ) = delete;
-        item_location &operator= ( const item_location & ) = delete;
-        item_location( item_location && );
-        item_location &operator=( item_location && );
-        ~item_location();
 
         static const item_location nowhere;
 
         item_location( Character &ch, item *which );
-        item_location( Character &ch, std::list<item> *which );
         item_location( const map_cursor &mc, item *which );
-        item_location( const map_cursor &mc, std::list<item> *which );
         item_location( const vehicle_cursor &vc, item *which );
-        item_location( const vehicle_cursor &vc, std::list<item> *which );
+        item_location( const item_location &container, item *which );
 
         void serialize( JsonOut &js ) const;
         void deserialize( JsonIn &js );
 
-        int charges_in_stack( unsigned int countOnly ) const;
-
         bool operator==( const item_location &rhs ) const;
         bool operator!=( const item_location &rhs ) const;
 
-        operator bool() const;
+        explicit operator bool() const;
 
         item &operator*();
         const item &operator*() const;
@@ -66,6 +58,10 @@ class item_location
         /** Returns the type of location where the item is found */
         type where() const;
 
+        /** Returns the type of location where the topmost container of the item is found.
+         *  Therefore can not return item_location::type::container */
+        type where_recursive() const;
+
         /** Returns the position where the item is found */
         tripoint position() const;
 
@@ -74,13 +70,14 @@ class item_location
         std::string describe( const Character *ch = nullptr ) const;
 
         /** Move an item from the location to the character inventory
+         *  If the player fails to obtain the item (likely due to a menu) returns item_location{}
          *  @param ch Character who's inventory gets the item
          *  @param qty if specified limits maximum obtained charges
          *  @warning caller should restack inventory if item is to remain in it
          *  @warning all further operations using this class are invalid
          *  @warning it is unsafe to call this within unsequenced operations (see #15542)
-         *  @return inventory position for the item */
-        int obtain( Character &ch, int qty = -1 );
+         *  @return item_location for the item */
+        item_location obtain( Character &ch, int qty = -1 );
 
         /** Calculate (but do not deduct) number of moves required to obtain an item
          *  @see item_location::obtain */
@@ -90,28 +87,50 @@ class item_location
          *  @warning all further operations using this class are invalid */
         void remove_item();
 
+        /** Handles updates to the item location, mostly for caching. */
+        void on_contents_changed();
+
         /** Gets the selected item or nullptr */
         item *get_item();
         const item *get_item() const;
 
-        /**
-         * Clones this instance
-         * @warning usage should be restricted to implementing custom copy-constructors
-         */
-        item_location clone() const;
-
         void set_should_stack( bool should_stack ) const;
+
+        /** returns the parent item, or an invalid location if it has no parent */
+        item_location parent_item() const;
+
+        /** returns true if the item is in the inventory of the given character **/
+        bool held_by( Character &who ) const;
+
+        /**
+         * true if this item location can and does have a parent
+         *
+         * exists because calling parent_item() naively causes debug messages
+         **/
+        bool has_parent() const;
+
+        /**
+        * Returns available volume capacity where this item is located.
+        */
+        units::volume volume_capacity() const;
+
+        /**
+        * Returns available weight capacity where this item is located.
+        */
+        units::mass weight_capacity() const;
+
+        bool parents_can_contain_recursive( item *it ) const;
+        int max_charges_by_parent_recursive( const item &it ) const;
+
+        /**
+         * Returns whether another item is eventually contained by this item
+         */
+        bool eventually_contains( item_location loc ) const;
 
     private:
         class impl;
 
         std::shared_ptr<impl> ptr;
-
-        /* Not implemented on purpose. This triggers a compiler / linker
-         * error when used in any implicit conversion. It prevents the
-         * implicit conversion to int. */
-        template<typename T>
-        operator T() const;
 };
 
-#endif
+#endif // CATA_SRC_ITEM_LOCATION_H

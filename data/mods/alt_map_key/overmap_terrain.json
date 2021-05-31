@@ -176,22 +176,6 @@
   },
   {
     "type": "overmap_terrain",
-    "id": "house",
-    "copy-from": "house",
-    "name": "house",
-    "sym": "^",
-    "color": "light_green"
-  },
-  {
-    "type": "overmap_terrain",
-    "id": "house_base",
-    "copy-from": "house_base",
-    "name": "house",
-    "sym": "^",
-    "color": "light_green"
-  },
-  {
-    "type": "overmap_terrain",
     "id": "house_prepper",
     "copy-from": "house_prepper",
     "name": "house",
@@ -392,33 +376,57 @@
   },
   {
     "type": "overmap_terrain",
-    "id": "office_tower_1_entrance",
-    "copy-from": "office_tower_1_entrance",
-    "name": "office tower",
-    "sym": "O",
-    "color": "i_black"
-  },
-  {
-    "type": "overmap_terrain",
-    "id": "office_tower_1",
-    "copy-from": "office_tower_1",
-    "name": "office tower",
+    "id": "office_tower_nw",
+    "copy-from": "office_tower_nw",
     "sym": "o",
     "color": "i_black"
   },
   {
     "type": "overmap_terrain",
-    "id": "office_tower_b_entrance",
-    "copy-from": "office_tower_b_entrance",
-    "name": "tower parking",
+    "id": "office_tower_ne",
+    "copy-from": "office_tower_ne",
     "sym": "O",
     "color": "i_black"
   },
   {
     "type": "overmap_terrain",
-    "id": "office_tower_b",
-    "copy-from": "office_tower_b",
-    "name": "tower parking",
+    "id": "office_tower_sw",
+    "copy-from": "office_tower_sw",
+    "sym": "o",
+    "color": "i_black"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "office_tower_se",
+    "copy-from": "office_tower_se",
+    "sym": "o",
+    "color": "i_black"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "office_tower_underground_nw",
+    "copy-from": "office_tower_underground_nw",
+    "sym": "O",
+    "color": "i_black"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "office_tower_underground_ne",
+    "copy-from": "office_tower_underground_ne",
+    "sym": "O",
+    "color": "i_black"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "office_tower_underground_sw",
+    "copy-from": "office_tower_underground_sw",
+    "sym": "O",
+    "color": "i_black"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "office_tower_underground_se",
+    "copy-from": "office_tower_underground_se",
     "sym": "O",
     "color": "i_black"
   },
@@ -810,7 +818,7 @@
     "type": "overmap_terrain",
     "id": "mil_surplus",
     "copy-from": "mil_surplus",
-    "name": "mil. surplus",
+    "name": { "str": "mil. surplus", "//NOLINT(cata-text-style)": "not a period" },
     "sym": "m",
     "color": "magenta"
   },
@@ -840,19 +848,151 @@
   },
   {
     "type": "overmap_terrain",
-    "id": "megastore_entrance",
-    "copy-from": "megastore_entrance",
-    "name": "megastore",
-    "sym": "M",
+    "id": "megastore_parking",
+    "copy-from": "megastore_parking",
+    "sym": "p",
+    "color": "light_blue"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_0_0",
+    "copy-from": "megastore_0_0_0",
+    "sym": "m",
     "color": "i_magenta"
   },
   {
     "type": "overmap_terrain",
-    "id": "megastore",
-    "copy-from": "megastore",
-    "name": "megastore",
-    "sym": "m",
+    "id": "megastore_1_0_0",
+    "copy-from": "megastore_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_0_0",
+    "copy-from": "megastore_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_1_0",
+    "copy-from": "megastore_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_1_1_0",
+    "copy-from": "megastore_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_1_0",
+    "copy-from": "megastore_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_2_0",
+    "copy-from": "megastore_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_1_2_0",
+    "copy-from": "megastore_1_2_0",
+    "name": "megastore entrance",
     "color": "i_magenta"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_2_0",
+    "copy-from": "megastore_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_0_1",
+    "copy-from": "megastore_0_0_1",
+    "color": "i_magenta"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_1_0_1",
+    "copy-from": "megastore_0_0_1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_0_1",
+    "copy-from": "megastore_0_0_1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_1_1",
+    "copy-from": "megastore_0_0_1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_1_1_1",
+    "copy-from": "megastore_0_0_1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_1_1",
+    "copy-from": "megastore_0_0_1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_2_1",
+    "copy-from": "megastore_0_0_1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_1_2_1",
+    "copy-from": "megastore_0_0_1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_2_1",
+    "copy-from": "megastore_0_0_1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_0_roof",
+    "copy-from": "megastore_0_0_roof",
+    "color": "i_magenta"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_1_0_roof",
+    "copy-from": "megastore_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_0_roof",
+    "copy-from": "megastore_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_1_roof",
+    "copy-from": "megastore_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_1_1_roof",
+    "copy-from": "megastore_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_1_roof",
+    "copy-from": "megastore_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_0_2_roof",
+    "copy-from": "megastore_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_1_2_roof",
+    "copy-from": "megastore_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "megastore_2_2_roof",
+    "copy-from": "megastore_0_0_roof"
   },
   {
     "type": "overmap_terrain",
@@ -1606,27 +1746,85 @@
   },
   {
     "type": "overmap_terrain",
-    "id": "sewage_treatment",
-    "copy-from": "sewage_treatment",
-    "name": "sewage treatment",
+    "id": "sewage_treatment_0_0_0",
+    "copy-from": "sewage_treatment_0_0_0",
+    "name": "sewage treatment plant",
     "sym": "s",
     "color": "yellow"
   },
   {
     "type": "overmap_terrain",
-    "id": "sewage_treatment_hub",
-    "copy-from": "sewage_treatment_hub",
+    "id": "sewage_treatment_0_1_0",
+    "copy-from": "sewage_treatment_0_1_0",
+    "name": "sewage treatment plant",
+    "sym": "s",
+    "color": "yellow"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_1_1_0",
+    "copy-from": "sewage_treatment_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_1_0_0",
+    "copy-from": "sewage_treatment_0_0_0"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_0_0_roof",
+    "copy-from": "sewage_treatment_0_0_roof",
+    "name": "sewage treatment plant roof",
+    "sym": "s",
+    "color": "i_yellow"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_1_0_roof",
+    "copy-from": "sewage_treatment_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_0_1_roof",
+    "copy-from": "sewage_treatment_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_1_1_roof",
+    "copy-from": "sewage_treatment_0_0_roof"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_0_0_-1",
+    "copy-from": "sewage_treatment_0_0_-1",
     "name": "sewage treatment",
     "sym": "s",
     "color": "i_yellow"
   },
   {
     "type": "overmap_terrain",
-    "id": "sewage_treatment_under",
-    "copy-from": "sewage_treatment_under",
-    "name": "sewage treatment",
-    "sym": "s",
-    "color": "i_yellow"
+    "id": "sewage_treatment_1_0_-1",
+    "copy-from": "sewage_treatment_0_0_-1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_2_0_-1",
+    "copy-from": "sewage_treatment_0_0_-1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_0_1_-1",
+    "copy-from": "sewage_treatment_0_0_-1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_1_1_-1",
+    "copy-from": "sewage_treatment_0_0_-1"
+  },
+  {
+    "type": "overmap_terrain",
+    "id": "sewage_treatment_2_1_-1",
+    "copy-from": "sewage_treatment_0_0_-1"
   },
   {
     "type": "overmap_terrain",
@@ -1699,38 +1897,6 @@
     "name": "toxic waste dump",
     "sym": "t",
     "color": "pink"
-  },
-  {
-    "type": "overmap_terrain",
-    "id": "haz_sar_entrance",
-    "copy-from": "haz_sar_entrance",
-    "name": "hazardous waste sarcophagus",
-    "sym": "H",
-    "color": "i_pink"
-  },
-  {
-    "type": "overmap_terrain",
-    "id": "haz_sar",
-    "copy-from": "haz_sar",
-    "name": "hazardous waste sarcophagus",
-    "sym": "h",
-    "color": "i_pink"
-  },
-  {
-    "type": "overmap_terrain",
-    "id": "haz_sar_entrance_b1",
-    "copy-from": "haz_sar_entrance_b1",
-    "name": "hazardous waste sarcophagus",
-    "sym": "H",
-    "color": "i_pink"
-  },
-  {
-    "type": "overmap_terrain",
-    "id": "haz_sar_b1",
-    "copy-from": "haz_sar_b1",
-    "name": "hazardous waste sarcophagus",
-    "sym": "h",
-    "color": "i_pink"
   },
   {
     "type": "overmap_terrain",
@@ -4849,7 +5015,7 @@
     "type": "overmap_terrain",
     "id": "necropolis_d_38",
     "copy-from": "necropolis_d_38",
-    "name": "Vault - Maint. Bay",
+    "name": { "str": "Vault - Maint. Bay", "//NOLINT(cata-text-style)": "not a period" },
     "sym": "M",
     "color": "yellow"
   },
@@ -4857,7 +5023,7 @@
     "type": "overmap_terrain",
     "id": "necropolis_d_39",
     "copy-from": "necropolis_d_39",
-    "name": "Vault - Maint. Bay",
+    "name": { "str": "Vault - Maint. Bay", "//NOLINT(cata-text-style)": "not a period" },
     "sym": "M",
     "color": "yellow"
   },
@@ -7277,8 +7443,8 @@
     "id": "bandit_garage_2",
     "copy-from": "bandit_garage_2",
     "name": "forest",
-    "sym": "b",
-    "color": "light_blue"
+    "sym": "#",
+    "color": "green"
   },
   {
     "id": "pavilion",
@@ -7911,14 +8077,6 @@
     "name": "pond",
     "sym": "#",
     "color": "blue"
-  },
-  {
-    "type": "overmap_terrain",
-    "id": "mass_grave",
-    "copy-from": "mass_grave",
-    "name": "mass grave",
-    "sym": "m",
-    "color": "red"
   },
   {
     "type": "overmap_terrain",

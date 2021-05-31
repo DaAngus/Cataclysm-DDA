@@ -1,22 +1,25 @@
 #pragma once
-#ifndef MONSTERGENERATOR_H
-#define MONSTERGENERATOR_H
+#ifndef CATA_SRC_MONSTERGENERATOR_H
+#define CATA_SRC_MONSTERGENERATOR_H
 
+#include <array>
+#include <iosfwd>
 #include <map>
+#include <memory>
 #include <vector>
-#include <string>
 
+#include "enum_bitset.h"
 #include "enums.h"
+#include "generic_factory.h"
 #include "mattack_common.h"
 #include "mtype.h"
+#include "optional.h"
 #include "pimpl.h"
-#include "string_id.h"
-#include "enum_bitset.h"
-#include "generic_factory.h"
+#include "translations.h"
 #include "type_id.h"
 
-class JsonObject;
 class Creature;
+class JsonObject;
 class monster;
 struct dealt_projectile_attack;
 
@@ -27,16 +30,22 @@ using mon_action_defend = void ( * )( monster &, Creature *, dealt_projectile_at
 struct species_type {
     species_id id;
     bool was_loaded = false;
+    translation description;
+    translation footsteps;
     enum_bitset<m_flag> flags;
     enum_bitset<mon_trigger> anger;
     enum_bitset<mon_trigger> fear;
     enum_bitset<mon_trigger> placate;
+    field_type_str_id bleeds;
+    std::string get_footsteps() const {
+        return footsteps.translated();
+    }
 
     species_type(): id( species_id::NULL_ID() ) {
 
     }
 
-    void load( JsonObject &jo, const std::string &src );
+    void load( const JsonObject &jo, const std::string &src );
 };
 
 class MonsterGenerator
@@ -53,20 +62,22 @@ class MonsterGenerator
         void reset();
 
         // JSON loading functions
-        void load_monster( JsonObject &jo, const std::string &src );
-        void load_species( JsonObject &jo, const std::string &src );
-        void load_monster_attack( JsonObject &jo, const std::string &src );
+        void load_monster( const JsonObject &jo, const std::string &src );
+        void load_species( const JsonObject &jo, const std::string &src );
+        void load_monster_attack( const JsonObject &jo, const std::string &src );
 
         // combines mtype and species information, sets bitflags
         void finalize_mtypes();
 
         void check_monster_definitions() const;
 
+        cata::optional<mon_action_death> get_death_function( const std::string &f ) const;
         const std::vector<mtype> &get_all_mtypes() const;
         mtype_id get_valid_hallucination() const;
         friend struct mtype;
         friend struct species_type;
         friend class mattack_actor;
+        std::array<int, m_flag::MF_MAX> m_flag_usage_stats;
 
     private:
         MonsterGenerator();
@@ -77,16 +88,16 @@ class MonsterGenerator
         void init_attack();
         void init_defense();
 
-        void add_hardcoded_attack( const std::string &type, const mon_action_attack f );
-        void add_attack( mattack_actor *ptr );
+        void add_hardcoded_attack( const std::string &type, mon_action_attack f );
+        void add_attack( std::unique_ptr<mattack_actor> );
         void add_attack( const mtype_special_attack &wrapper );
 
         /** Gets an actor object without saving it anywhere */
-        mtype_special_attack create_actor( JsonObject obj, const std::string &src ) const;
+        mtype_special_attack create_actor( const JsonObject &obj, const std::string &src ) const;
 
         // finalization
         void apply_species_attributes( mtype &mon );
-        void set_species_ids( mtype &mon );
+        void validate_species_ids( mtype &mon );
         void finalize_pathfinding_settings( mtype &mon );
 
         friend class string_id<mtype>;
@@ -103,6 +114,7 @@ class MonsterGenerator
         std::map<std::string, mtype_special_attack> attack_map;
 };
 
-void load_monster_adjustment( JsonObject &jsobj );
+void load_monster_adjustment( const JsonObject &jsobj );
+void reset_monster_adjustment();
 
-#endif
+#endif // CATA_SRC_MONSTERGENERATOR_H

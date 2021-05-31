@@ -2,20 +2,19 @@
 
 #include "sdl_wrappers.h"
 
-#include <cassert>
 #include <ostream>
 #include <stdexcept>
 #include <string>
 
+#include "cata_assert.h"
 #include "debug.h"
+#include "point.h"
 
-#if defined(TILES)
-#   if defined(_MSC_VER) && defined(USE_VCPKG)
-#       include <SDL2/SDL_image.h>
-#   else
-#       include <SDL_image.h>
-#   endif
-#endif // TILES
+#if defined(_MSC_VER) && defined(USE_VCPKG)
+#   include <SDL2/SDL_image.h>
+#else
+#   include <SDL_image.h>
+#endif
 
 #define dbg(x) DebugLog((x),D_SDL) << __FILE__ << ":" << __LINE__ << ": "
 
@@ -51,6 +50,18 @@ void RenderCopy( const SDL_Renderer_Ptr &renderer, const SDL_Texture_Ptr &textur
                   "SDL_RenderCopy failed" );
 }
 
+SDL_Texture_Ptr CreateTexture( const SDL_Renderer_Ptr &renderer, Uint32 format, int access,
+                               int w, int h )
+{
+    if( !renderer ) {
+        dbg( D_ERROR ) << "Tried to create texture with a null renderer";
+        return SDL_Texture_Ptr();
+    }
+    SDL_Texture_Ptr result( SDL_CreateTexture( renderer.get(), format, access, w, h ) );
+    printErrorIf( !result, "SDL_CreateTexture failed" );
+    return result;
+}
+
 SDL_Texture_Ptr CreateTextureFromSurface( const SDL_Renderer_Ptr &renderer,
         const SDL_Surface_Ptr &surface )
 {
@@ -78,9 +89,9 @@ void SetRenderDrawColor( const SDL_Renderer_Ptr &renderer, const Uint8 r, const 
                   "SDL_SetRenderDrawColor failed" );
 }
 
-void RenderDrawPoint( const SDL_Renderer_Ptr &renderer, int x, int y )
+void RenderDrawPoint( const SDL_Renderer_Ptr &renderer, const point &p )
 {
-    printErrorIf( SDL_RenderDrawPoint( renderer.get(), x, y ) != 0, "SDL_RenderDrawPoint failed" );
+    printErrorIf( SDL_RenderDrawPoint( renderer.get(), p.x, p.y ) != 0, "SDL_RenderDrawPoint failed" );
 }
 
 void RenderFillRect( const SDL_Renderer_Ptr &renderer, const SDL_Rect *const rect )
@@ -99,6 +110,16 @@ void FillRect( const SDL_Surface_Ptr &surface, const SDL_Rect *const rect, Uint3
         return;
     }
     printErrorIf( SDL_FillRect( surface.get(), rect, color ) != 0, "SDL_FillRect failed" );
+}
+
+void SetTextureBlendMode( const SDL_Texture_Ptr &texture, SDL_BlendMode blendMode )
+{
+    if( !texture ) {
+        dbg( D_ERROR ) << "Tried to use a null texture";
+    }
+
+    throwErrorIf( SDL_SetTextureBlendMode( texture.get(), blendMode ) != 0,
+                  "SDL_SetTextureBlendMode failed" );
 }
 
 bool SetTextureColorMod( const SDL_Texture_Ptr &texture, Uint32 r, Uint32 g, Uint32 b )
@@ -133,7 +154,7 @@ void GetRenderDrawBlendMode( const SDL_Renderer_Ptr &renderer, SDL_BlendMode &bl
 
 SDL_Surface_Ptr load_image( const char *const path )
 {
-    assert( path );
+    cata_assert( path );
     SDL_Surface_Ptr result( IMG_Load( path ) );
     if( !result ) {
         throw std::runtime_error( "Could not load image \"" + std::string( path ) + "\": " +

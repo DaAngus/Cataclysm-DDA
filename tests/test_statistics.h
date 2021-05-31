@@ -1,13 +1,13 @@
 #pragma once
-#ifndef TEST_STATISTICS_H
-#define TEST_STATISTICS_H
+#ifndef CATA_TESTS_TEST_STATISTICS_H
+#define CATA_TESTS_TEST_STATISTICS_H
 
-#include <cmath>
-#include <limits>
-#include <vector>
 #include <algorithm>
-#include <string>
+#include <cmath>
+#include <iosfwd>
+#include <limits>
 #include <type_traits>
+#include <vector>
 
 #include "catch/catch.hpp"
 
@@ -50,7 +50,8 @@ class statistics
         T _min;
         std::vector< T > samples;
     public:
-        statistics( const double Z = Z99_9 ) : _types( 0 ), _n( 0 ), _sum( 0 ), _error( invalid_err ),
+        explicit statistics( const double Z = Z99_9 ) :
+            _types( 0 ), _n( 0 ), _sum( 0 ), _error( invalid_err ),
             _Z( Z ),  _Zsq( Z * Z ), _max( std::numeric_limits<T>::min() ),
             _min( std::numeric_limits<T>::max() ) {}
 
@@ -117,12 +118,9 @@ class statistics
          * Returns true if the confidence interval partially overlaps the target region.
          */
         bool uncertain_about( const epsilon_threshold &t ) {
-            if( test_threshold( t ) || // Inside target
-                ( t.midpoint - t.epsilon ) > upper() || // Below target
-                ( t.midpoint + t.epsilon ) < lower() ) { // Above target
-                return false;
-            }
-            return true;
+            return !test_threshold( t ) && // Inside target
+                   t.midpoint - t.epsilon < upper() && // Below target
+                   t.midpoint + t.epsilon > lower(); // Above target
         }
 
         bool test_threshold( const epsilon_threshold &t ) {
@@ -166,7 +164,7 @@ class statistics
             double average = avg();
             double sigma_acc = 0;
 
-            for( const auto v : samples ) {
+            for( const T v : samples ) {
                 const double diff = v - average;
                 sigma_acc += diff * diff;
             }
@@ -230,4 +228,4 @@ inline BinomialMatcher IsBinomialObservation(
     return BinomialMatcher( num_samples, p, max_deviation );
 }
 
-#endif
+#endif // CATA_TESTS_TEST_STATISTICS_H

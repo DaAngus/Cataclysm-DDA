@@ -1,40 +1,27 @@
-# 两个自然段之间用且仅用一个空行分隔 --DLaboratory
-# Max length of a line is 78 characters; the following line is for reference
-# Longer lines will be automatically folded
+# 单行字数 <= 78，如下例
+# 超长的行会自动折叠
 ##############################################################################
-原作者：　　　　　　项目主管：　　　　　　网站主管：
-Whales（不再参与）　KevinGranade　　　　　GlyphGryph
+<color_white>原作者：</color>   <color_white>项目管理员：</color>
+<color_yellow>Whales</color>（<color_dark_gray>不再参与</color>） <color_yellow>KevinGranade</color>
 
-当前主要开发者，兼 GitHub 项目管理员：
-KevinGranade、Rivet-the-Zombie、BevapDin、Coolthulu、i2amroy
+<color_white>当前主要开发者：</color>
+<color_yellow>mlangsdorf</color> - 载具，船只，营地和mod制作的教程。
+<color_yellow>I-am-Erk</color> - 维护Ultica贴图包
+<color_yellow>KorGgenT</color> - 口袋系统与大魔法
 
-特别感谢：
-Narc：利用 Jenkins 设立自动游戏自重编译打包服务。
-Acidia：为 NPC、任务及地点出谋划策并作出极佳贡献。
-Wuzzy 和 VlasovVitaly：不辞劳苦地协助翻译。
-HuXTUS：提供大量精彩游戏内容。
+<color_white>特别感谢：</color>
+<color_yellow>Aivean</color> - 程序优化
+<color_yellow>anothersimulacrum </color> - 疲劳系统
+<color_yellow>jbytheway</color> - Python程序修正、错误信息定位以及营地建造蓝图。
+<color_yellow>BrettD</color> - 翻译管理以及其他程序修正。
+<color_yellow>Qrox</color> - 定位并显示游戏程序错误信息
+<color_yellow>LyleSY</color> - 恐龙
 
-完整贡献者列表请见：
-https://github.com/CleverRaven/Cataclysm-DDA/contributors
-《大灾变·劫后余生》是以 Creative Commons BY-SA 3.0 授权发布。
+<color_white>特别鸣谢艺术贡献者：</color>
+<color_yellow>acepleiades</color>, <color_yellow>barsoosayque</color>, <color_yellow>Fris0uman</color>, <color_yellow>int-ua</color>，以及其他贡献者。
 
-<color_red>汉化说明：</color>
-欢迎前往Transifex参加汉化：
-https://www.transifex.com/cataclysm-dda-translators/cataclysm-dda
+<color_white>完整贡献者列表请见：</color>
+<color_cyan>https://github.com/CleverRaven/Cataclysm-DDA/contributors</color>
 
-相关汉化人员名单（可考）：
-0.6本体： Azrael, qude, Emi。Artoria, tubro.鱼子酱, 姬伯牙, 月光伊伊, yes icant, 轩辕娜娜, 诚实好青年
-
-0.7模板： Antee, Jagdparrot, Kuniox, No.82-Lich, Pepper, Yuan Bo, baozite, damondamo, emusilent, ginoside, kel, thzuard, moonwalk, s524797336, sayako, vcd5m, wenxiao, wuxiaoquan wyf, wzj, yangquanheng,zhoujian, 东郭偃, 斯巴达, 王光河, 肖思扬, 银枫月
-
-模都精校：675120997@qq.com, Devil, Jagdparrot, Nightoon, Primer238, Seven Westie, baozite, cellxiecao, emusilent, hiro, nanodesu-u~, qude, tt9891, vipches, wangjie, zhoujian, 继续求财神
-
-transifex翻译：Arcadia H, cainiao, Dikai Li, Brett Dong, FanyiMeng, 孔令垚, Lin Shu, fei li, cellxiecao, Jak Wings, Hua Liang, Amans Tofu, 桂平 翟, wei liu, Miigon Anonymous, polar bear, startobira, takhiss pa, Jin Zhang, Yao YongPeng, zhang yz, 迅雷 Thunder, 扬 米
-
-目前模都汉化维护人员：newisle, 永远的五毛钱, CQC_S
-
-以上人员不论多寡皆对此游戏的文本翻译作出了贡献。
-
-为CDDA汉化工作做出贡献的你们的名字不会被忘记！
-
-而“拿来主义”者们必将受到唾弃！
+《<color_light_cyan>大灾变</color>·<color_light_blue>劫后余生</color>》按<color_white> CC-BY-SA 3.0 </color> 授权协议发布：
+<color_cyan>https://creativecommons.org/licenses/by-sa/3.0/</color>

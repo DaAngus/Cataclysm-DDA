@@ -1,31 +1,24 @@
 #pragma once
-#ifndef IEXAMINE_H
-#define IEXAMINE_H
+#ifndef CATA_SRC_IEXAMINE_H
+#define CATA_SRC_IEXAMINE_H
 
+#include <iosfwd>
 #include <list>
-#include <string>
 #include <tuple>
 #include <vector>
 
-#include "itype.h"
-#include "calendar.h"
 #include "optional.h"
 #include "ret_val.h"
 #include "type_id.h"
 
 class item;
 class player;
+class time_point;
 class vpart_reference;
+struct itype;
 struct tripoint;
 
 using seed_tuple = std::tuple<itype_id, std::string, int>;
-
-enum hack_result {
-    HACK_UNABLE,
-    HACK_FAIL,
-    HACK_NOTHING,
-    HACK_SUCCESS
-};
 
 namespace iexamine
 {
@@ -54,8 +47,7 @@ void portable_structure( player &p, const tripoint &examp );
 void pit( player &p, const tripoint &examp );
 void pit_covered( player &p, const tripoint &examp );
 void slot_machine( player &p, const tripoint &examp );
-void safe( player &p, const tripoint &examp );
-void gunsafe_ml( player &p, const tripoint &examp );
+void safe( player &guy, const tripoint &examp );
 void gunsafe_el( player &p, const tripoint &examp );
 void harvest_furn_nectar( player &p, const tripoint &examp );
 void harvest_furn( player &p, const tripoint &examp );
@@ -63,6 +55,7 @@ void harvest_ter_nectar( player &p, const tripoint &examp );
 void harvest_ter( player &p, const tripoint &examp );
 void harvested_plant( player &p, const tripoint &examp );
 void locked_object( player &p, const tripoint &examp );
+void locked_object_pickable( player &p, const tripoint &examp );
 void bulletin_board( player &p, const tripoint &examp );
 void fault( player &p, const tripoint &examp );
 void pedestal_wyrm( player &p, const tripoint &examp );
@@ -89,11 +82,14 @@ void shrub_marloss( player &p, const tripoint &examp );
 void tree_marloss( player &p, const tripoint &examp );
 void shrub_wildveggies( player &p, const tripoint &examp );
 void recycle_compactor( player &p, const tripoint &examp );
-void trap( player &p, const tripoint &examp );
 void water_source( player &p, const tripoint &examp );
 void clean_water_source( player &, const tripoint &examp );
 void kiln_empty( player &p, const tripoint &examp );
 void kiln_full( player &p, const tripoint &examp );
+void arcfurnace_empty( player &p, const tripoint &examp );
+void arcfurnace_full( player &p, const tripoint &examp );
+void autoclave_empty( player &p, const tripoint &examp );
+void autoclave_full( player &, const tripoint &examp );
 void fireplace( player &p, const tripoint &examp );
 void fvat_empty( player &p, const tripoint &examp );
 void fvat_full( player &p, const tripoint &examp );
@@ -104,6 +100,8 @@ void sign( player &p, const tripoint &examp );
 void pay_gas( player &p, const tripoint &examp );
 void ledge( player &p, const tripoint &examp );
 void autodoc( player &p, const tripoint &examp );
+void attunement_altar( player &p, const tripoint &examp );
+void translocator( player &p, const tripoint &examp );
 void on_smoke_out( const tripoint &examp,
                    const time_point &start_time ); //activates end of smoking effects
 void mill_finalize( player &, const tripoint &examp, const time_point &start_time );
@@ -113,9 +111,13 @@ void open_safe( player &p, const tripoint &examp );
 void workbench( player &p, const tripoint &examp );
 void workbench_internal( player &p, const tripoint &examp,
                          const cata::optional<vpart_reference> &part );
-hack_result hack_attempt( player &p );
+void workout( player &p, const tripoint &examp );
 
 bool pour_into_keg( const tripoint &pos, item &liquid );
+cata::optional<tripoint> getGasPumpByNumber( const tripoint &p, int number );
+bool toPumpFuel( const tripoint &src, const tripoint &dst, int units );
+cata::optional<tripoint> getNearFilledGasTank( const tripoint &center, int &fuel_units,
+        const std::string &fuel_type );
 
 bool has_keg( const tripoint &pos );
 
@@ -126,14 +128,17 @@ std::list<item> get_harvest_items( const itype &type, int plant_count,
 std::vector<seed_tuple> get_seed_entries( const std::vector<item *> &seed_inv );
 int query_seed( const std::vector<seed_tuple> &seed_entries );
 void plant_seed( player &p, const tripoint &examp, const itype_id &seed_id );
-void harvest_plant( player &p, const tripoint &examp );
+void harvest_plant( player &p, const tripoint &examp, bool from_activity = false );
 void fertilize_plant( player &p, const tripoint &tile, const itype_id &fertilizer );
 itype_id choose_fertilizer( player &p, const std::string &pname, bool ask_player );
 ret_val<bool> can_fertilize( player &p, const tripoint &tile, const itype_id &fertilizer );
+
+// Skill training common functions
+void practice_survival_while_foraging( player *p );
 
 } //namespace iexamine
 
 using iexamine_function = void ( * )( player &, const tripoint & );
 iexamine_function iexamine_function_from_string( const std::string &function_name );
 
-#endif
+#endif // CATA_SRC_IEXAMINE_H

@@ -1,36 +1,35 @@
 #include "gates.h"
 
 #include <algorithm>
-#include <string>
-#include <vector>
-#include <list>
+#include <array>
 #include <memory>
 #include <set>
+#include <vector>
 
+#include "activity_actor_definitions.h"
 #include "avatar.h"
+#include "character.h"
+#include "colony.h"
+#include "creature.h"
+#include "debug.h"
+#include "enums.h"
 #include "game.h" // TODO: This is a circular dependency
 #include "generic_factory.h"
 #include "iexamine.h"
+#include "item.h"
 #include "json.h"
 #include "map.h"
 #include "mapdata.h"
 #include "messages.h"
-#include "player.h"
-#include "vehicle.h"
-#include "vpart_position.h"
-#include "character.h"
-#include "creature.h"
-#include "debug.h"
-#include "enums.h"
-#include "int_id.h"
-#include "item.h"
-#include "item_stack.h"
 #include "optional.h"
 #include "player_activity.h"
-#include "string_id.h"
+#include "point.h"
 #include "translations.h"
-#include "units.h"
 #include "type_id.h"
+#include "units.h"
+#include "vehicle.h"
+#include "viewer.h"
+#include "vpart_position.h"
 
 // Gates namespace
 
@@ -54,16 +53,16 @@ struct gate_data {
     ter_str_id floor;
     std::vector<ter_str_id> walls;
 
-    std::string pull_message;
-    std::string open_message;
-    std::string close_message;
-    std::string fail_message;
+    translation pull_message;
+    translation open_message;
+    translation close_message;
+    translation fail_message;
 
     int moves;
     int bash_dmg;
     bool was_loaded;
 
-    void load( JsonObject &jo, const std::string &src );
+    void load( const JsonObject &jo, const std::string &src );
     void check() const;
 
     bool is_suitable_wall( const tripoint &pos ) const;
@@ -71,14 +70,14 @@ struct gate_data {
 
 gate_id get_gate_id( const tripoint &pos )
 {
-    return gate_id( g->m.ter( pos ).id().str() );
+    return gate_id( get_map().ter( pos ).id().str() );
 }
 
-generic_factory<gate_data> gates_data( "gate type", "handle", "other_handles" );
+generic_factory<gate_data> gates_data( "gate type" );
 
 } // namespace
 
-void gate_data::load( JsonObject &jo, const std::string & )
+void gate_data::load( const JsonObject &jo, const std::string & )
 {
     mandatory( jo, was_loaded, "door", door );
     mandatory( jo, was_loaded, "floor", floor );
@@ -87,10 +86,10 @@ void gate_data::load( JsonObject &jo, const std::string & )
     if( !was_loaded || jo.has_member( "messages" ) ) {
         JsonObject messages_obj = jo.get_object( "messages" );
 
-        optional( messages_obj, was_loaded, "pull", pull_message, translated_string_reader );
-        optional( messages_obj, was_loaded, "open", open_message, translated_string_reader );
-        optional( messages_obj, was_loaded, "close", close_message, translated_string_reader );
-        optional( messages_obj, was_loaded, "fail", fail_message, translated_string_reader );
+        optional( messages_obj, was_loaded, "pull", pull_message );
+        optional( messages_obj, was_loaded, "open", open_message );
+        optional( messages_obj, was_loaded, "close", close_message );
+        optional( messages_obj, was_loaded, "fail", fail_message );
     }
 
     optional( jo, was_loaded, "moves", moves, 0 );
@@ -99,12 +98,11 @@ void gate_data::load( JsonObject &jo, const std::string & )
 
 void gate_data::check() const
 {
-    static const iexamine_function controls_gate( iexamine_function_from_string( "controls_gate" ) );
     const ter_str_id winch_tid( id.str() );
 
     if( !winch_tid.is_valid() ) {
         debugmsg( "Gates \"%s\" have no terrain of the same name, working as a winch.", id.c_str() );
-    } else if( winch_tid->examine != controls_gate ) {
+    } else if( !winch_tid->has_examine( iexamine::controls_gate ) ) {
         debugmsg( "Terrain \"%s\" can't control gates, but gates \"%s\" depend on it.",
                   winch_tid.c_str(), id.c_str() );
     }
@@ -128,14 +126,14 @@ void gate_data::check() const
 
 bool gate_data::is_suitable_wall( const tripoint &pos ) const
 {
-    const auto wid = g->m.ter( pos );
+    const auto wid = get_map().ter( pos );
     const auto iter = std::find_if( walls.begin(), walls.end(), [ wid ]( const ter_str_id & wall ) {
         return wall.id() == wid;
     } );
     return iter != walls.end();
 }
 
-void gates::load( JsonObject &jo, const std::string &src )
+void gates::load( const JsonObject &jo, const std::string &src )
 {
     gates_data.load( jo, src );
 }
@@ -176,18 +174,16 @@ void gates::open_gate( const tripoint &pos )
     bool close = false;
     bool fail = false;
 
-    for( int i = 0; i < 4; ++i ) {
-        static constexpr tripoint dir[4] = {
-            { 1, 0, 0 }, { 0, 1, 0 }, { -1, 0, 0 }, { 0, -1, 0 }
-        };
-        const tripoint wall_pos = pos + dir[i];
+    map &here = get_map();
+    for( const point &wall_offset : four_adjacent_offsets ) {
+        const tripoint wall_pos = pos + wall_offset;
 
         if( !gate.is_suitable_wall( wall_pos ) ) {
             continue;
         }
 
-        for( auto j : dir ) {
-            const tripoint gate_pos = wall_pos + j;
+        for( const point &gate_offset : four_adjacent_offsets ) {
+            const tripoint gate_pos = wall_pos + gate_offset;
 
             if( gate_pos == pos ) {
                 continue; // Never comes back
@@ -195,31 +191,31 @@ void gates::open_gate( const tripoint &pos )
 
             if( !open ) { // Closing the gate...
                 tripoint cur_pos = gate_pos;
-                while( g->m.ter( cur_pos ) == gate.floor.id() ) {
+                while( here.ter( cur_pos ) == gate.floor.id() ) {
                     fail = !g->forced_door_closing( cur_pos, gate.door.id(), gate.bash_dmg ) || fail;
                     close = !fail;
-                    cur_pos += j;
+                    cur_pos += gate_offset;
                 }
             }
 
             if( !close ) { // Opening the gate...
                 tripoint cur_pos = gate_pos;
                 while( true ) {
-                    const ter_id ter = g->m.ter( cur_pos );
+                    const ter_id ter = here.ter( cur_pos );
 
                     if( ter == gate.door.id() ) {
-                        g->m.ter_set( cur_pos, gate.floor.id() );
+                        here.ter_set( cur_pos, gate.floor.id() );
                         open = !fail;
                     } else if( ter != gate.floor.id() ) {
                         break;
                     }
-                    cur_pos += j;
+                    cur_pos += gate_offset;
                 }
             }
         }
     }
 
-    if( g->u.sees( pos ) ) {
+    if( get_player_view().sees( pos ) ) {
         if( open ) {
             add_msg( gate.open_message );
         } else if( close ) {
@@ -232,7 +228,7 @@ void gates::open_gate( const tripoint &pos )
     }
 }
 
-void gates::open_gate( const tripoint &pos, player &p )
+void gates::open_gate( const tripoint &pos, Character &p )
 {
     const gate_id gid = get_gate_id( pos );
 
@@ -244,13 +240,15 @@ void gates::open_gate( const tripoint &pos, player &p )
     const gate_data &gate = gates_data.obj( gid );
 
     p.add_msg_if_player( gate.pull_message );
-    p.assign_activity( activity_id( "ACT_OPEN_GATE" ), gate.moves );
-    p.activity.placement = pos;
+    p.assign_activity( player_activity( open_gate_activity_actor(
+                                            gate.moves,
+                                            pos
+                                        ) ) );
 }
 
 // Doors namespace
 
-void doors::close_door( map &m, Character &who, const tripoint &closep )
+void doors::close_door( map &m, Creature &who, const tripoint &closep )
 {
     bool didit = false;
     const bool inside = !m.is_outside( who.pos() );
@@ -269,6 +267,7 @@ void doors::close_door( map &m, Character &who, const tripoint &closep )
     }
 
     if( optional_vpart_position vp = m.veh_at( closep ) ) {
+        // There is a vehicle part here; see if it has anything that can be closed
         vehicle *const veh = &vp->vehicle();
         const int vpart = vp->part_index();
         const int closable = veh->next_part_to_close( vpart,
@@ -276,16 +275,24 @@ void doors::close_door( map &m, Character &who, const tripoint &closep )
         const int inside_closable = veh->next_part_to_close( vpart );
         const int openable = veh->next_part_to_open( vpart );
         if( closable >= 0 ) {
-            veh->close( closable );
-            didit = true;
+            if( !veh->handle_potential_theft( get_avatar() ) ) {
+                return;
+            }
+            Character *ch = who.as_character();
+            if( ch && veh->can_close( closable, *ch ) ) {
+                veh->close( closable );
+                //~ %1$s - vehicle name, %2$s - part name
+                who.add_msg_if_player( _( "You close the %1$s's %2$s." ), veh->name, veh->part( closable ).name() );
+                didit = true;
+            }
         } else if( inside_closable >= 0 ) {
             who.add_msg_if_player( m_info, _( "That %s can only be closed from the inside." ),
-                                   veh->parts[inside_closable].name() );
+                                   veh->part( inside_closable ).name() );
         } else if( openable >= 0 ) {
             who.add_msg_if_player( m_info, _( "That %s is already closed." ),
-                                   veh->parts[openable].name() );
+                                   veh->part( openable ).name() );
         } else {
-            who.add_msg_if_player( m_info, _( "You cannot close the %s." ), veh->parts[vpart].name() );
+            who.add_msg_if_player( m_info, _( "You cannot close the %s." ), veh->part( vpart ).name() );
         }
     } else if( m.furn( closep ) == furn_str_id( "f_crate_o" ) ) {
         who.add_msg_if_player( m_info, _( "You'll need to construct a seal to close the crate!" ) );
@@ -298,10 +305,10 @@ void doors::close_door( map &m, Character &who, const tripoint &closep )
             who.add_msg_if_player( m_info, _( "You cannot close the %s." ), m.name( closep ) );
         }
     } else {
-        auto items_in_way = m.i_at( closep );
+        map_stack items_in_way = m.i_at( closep );
         // Scoot up to 25 liters of items out of the way
         if( m.furn( closep ) != furn_str_id( "f_safe_o" ) && !items_in_way.empty() ) {
-            const units::volume max_nudge = 25000_ml;
+            const units::volume max_nudge = 25_liter;
 
             const auto toobig = std::find_if( items_in_way.begin(), items_in_way.end(),
             [&max_nudge]( const item & it ) {
@@ -316,7 +323,7 @@ void doors::close_door( map &m, Character &who, const tripoint &closep )
                 m.close_door( closep, inside, false );
                 didit = true;
                 who.add_msg_if_player( m_info, _( "You push the %s out of the way." ),
-                                       items_in_way.size() == 1 ?  items_in_way[0].tname() : _( "stuff" ) );
+                                       items_in_way.size() == 1 ? items_in_way.only_item().tname() : _( "stuff" ) );
                 who.mod_moves( -std::min( items_in_way.stored_volume() / ( max_nudge / 50 ), 100 ) );
 
                 if( m.has_flag( "NOITEM", closep ) ) {
@@ -329,13 +336,15 @@ void doors::close_door( map &m, Character &who, const tripoint &closep )
                 }
             }
         } else {
+            const std::string door_name = m.obstacle_name( closep );
             m.close_door( closep, inside, false );
+            who.add_msg_if_player( _( "You close the %s." ), door_name );
             didit = true;
         }
     }
 
     if( didit ) {
-        who.mod_moves( -90 ); // TODO: Vary this? Based on strength, broken legs, and so on.
+        // TODO: Vary this? Based on strength, broken legs, and so on.
+        who.mod_moves( -90 );
     }
 }
-

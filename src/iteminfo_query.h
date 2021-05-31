@@ -1,22 +1,25 @@
 #pragma once
-#ifndef ITEMINFO_QUERY_H
-#define ITEMINFO_QUERY_H
+#ifndef CATA_SRC_ITEMINFO_QUERY_H
+#define CATA_SRC_ITEMINFO_QUERY_H
 
-#include <cstddef>
 #include <bitset>
-#include <string>
+#include <cstddef>
+#include <iosfwd>
 #include <vector>
 
 enum class iteminfo_parts : size_t {
     BASE_CATEGORY = 0,
     BASE_PRICE,
     BASE_BARTER,
+    BASE_OWNER,
     BASE_VOLUME,
     BASE_WEIGHT,
+    BASE_LENGTH,
     BASE_RIGIDITY,
     BASE_DAMAGE,
     BASE_TOHIT,
     BASE_MOVES,
+    BASE_DPS,
     BASE_REQUIREMENTS,
     BASE_MATERIAL,
     BASE_CONTENTS,
@@ -27,18 +30,23 @@ enum class iteminfo_parts : size_t {
     MED_PORTIONS,
     MED_STIMULATION,
     MED_QUENCH,
+    MED_CONSUME_TIME,
 
     FOOD_NUTRITION,
+    FOOD_SATIATION,
     FOOD_QUENCH,
     FOOD_JOY,
     FOOD_PORTIONS,
     FOOD_SMELL,
     FOOD_VITAMINS,
+    FOOD_VIT_EFFECTS,
     FOOD_CANNIBALISM,
     FOOD_TAINT,
     FOOD_POISON,
+    FOOD_ALLERGEN,
     FOOD_HALLUCINOGENIC,
     FOOD_ROT,
+    FOOD_CONSUME_TIME,
 
     MAGAZINE_CAPACITY,
     MAGAZINE_RELOAD,
@@ -46,14 +54,16 @@ enum class iteminfo_parts : size_t {
     AMMO_REMAINING_OR_TYPES,
     AMMO_DAMAGE_VALUE,
     AMMO_DAMAGE_PROPORTIONAL,
+    AMMO_DAMAGE_CRIT_MULTIPLIER,
     AMMO_DAMAGE_AP,
     AMMO_DAMAGE_RANGE,
     AMMO_DAMAGE_DISPERSION,
     AMMO_DAMAGE_RECOIL,
     AMMO_FX_RECYCLED,
+    AMMO_FX_RECOVER,
     AMMO_FX_BLACKPOWDER,
     AMMO_FX_CANTMISSFIRE,
-    AMMO_FX_INDENDIARY,
+    AMMO_FX_INCENDIARY,
 
     DESCRIPTION_AUX_GUNMOD_HEADER,
 
@@ -64,7 +74,9 @@ enum class iteminfo_parts : size_t {
 
     AMMO_REMAINING,
     AMMO_UPSCOST,
+    AMMO_TO_FIRE,
 
+    GUN_DEFAULT_AMMO,
     GUN_MAX_RANGE,
     GUN_AIMING_STATS,
     GUN_DAMAGE,
@@ -115,7 +127,6 @@ enum class iteminfo_parts : size_t {
     ARMOR_COVERAGE,
     ARMOR_WARMTH,
     ARMOR_ENCUMBRANCE,
-    ARMOR_STORAGE,
     ARMOR_PROTECTION,
 
     BOOK_SUMMARY,
@@ -131,6 +142,7 @@ enum class iteminfo_parts : size_t {
     DESCRIPTION_BOOK_ADDITIONAL_RECIPES,
 
     BOOK_UNREAD,
+    BOOK_INCLUDED_RECIPES,
 
     CONTAINER_DETAILS,
 
@@ -138,6 +150,7 @@ enum class iteminfo_parts : size_t {
     TOOL_MAGAZINE_CURRENT,
     TOOL_MAGAZINE_COMPATIBLE,
     TOOL_CAPACITY,
+    TOOL_BURNOUT,
 
     DESCRIPTION_COMPONENTS_MADEFROM,
     DESCRIPTION_COMPONENTS_DISASSEMBLE,
@@ -158,6 +171,7 @@ enum class iteminfo_parts : size_t {
     DESCRIPTION_USE_METHODS,
     DESCRIPTION_REPAIREDWITH,
 
+    DESCRIPTION_ALLERGEN,
     DESCRIPTION_CONDUCTIVITY,
     DESCRIPTION_FLAGS,
     DESCRIPTION_FLAGS_HELMETCOMPAT,
@@ -189,11 +203,15 @@ enum class iteminfo_parts : size_t {
 
     DESCRIPTION_FAULTS,
 
+    DESCRIPTION_POCKETS,
+
     DESCRIPTION_HOLSTERS,
 
     DESCRIPTION_ACTIVATABLE_TRANSFORMATION,
 
     DESCRIPTION_NOTES,
+
+    DESCRIPTION_DIE,
 
     DESCRIPTION_CONTENTS,
 
@@ -239,9 +257,9 @@ class iteminfo_query : public iteminfo_query_base
             not be any issue.
          */
         iteminfo_query();
-        iteminfo_query( const iteminfo_query_base &values );
-        iteminfo_query( const std::string &bits );
-        iteminfo_query( const std::vector<iteminfo_parts> &setBits );
+        explicit iteminfo_query( const iteminfo_query_base &values );
+        explicit iteminfo_query( const std::string &bits );
+        explicit iteminfo_query( const std::vector<iteminfo_parts> &setBits );
 
         bool test( const iteminfo_parts &value ) const;
 
@@ -250,4 +268,4 @@ class iteminfo_query : public iteminfo_query_base
         static const iteminfo_query anyflags;
 };
 
-#endif
+#endif // CATA_SRC_ITEMINFO_QUERY_H

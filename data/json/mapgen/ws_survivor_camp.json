@@ -37,8 +37,8 @@
       [ "arrow_fire_hardened_fletched", 20 ],
       [ "quiver_birchbark", 30 ],
       [ "fire_drill", 30 ],
-      [ "lighter", 30 ],
-      [ "matches", 30 ],
+      { "item": "lighter", "prob": 30, "charges": [ 0, 100 ] },
+      { "item": "matches", "prob": 30, "charges": [ 0, 20 ] },
       [ "sunglasses", 30 ],
       [ "fitover_sunglasses", 20 ],
       [ "ax", 10 ],
@@ -49,13 +49,13 @@
     "type": "item_group",
     "id": "sc_loot_rare",
     "items": [
-      [ "compositebow", 20 ],
+      [ "recurbow", 20 ],
       [ "quiver", 20 ],
       [ "book_archery", 20 ],
       [ "canteen", 20 ],
       [ "knife_hunting", 30 ],
       [ "binoculars", 20 ],
-      [ "ref_lighter", 30 ],
+      { "item": "ref_lighter", "prob": 30, "charges": [ 0, 50 ] },
       [ "backpack", 30 ],
       [ "backpack_leather", 30 ],
       [ "e_tool", 30 ]
@@ -70,8 +70,8 @@
       "rows": [
         ",,..,...................",
         "...,,,.....p......,.....",
-        ".....p..p......p....p.,.",
-        "..,p.,.p..,..p...p......",
+        "........p......p....p.,.",
+        "..,..,.p..,..p...p......",
         "..,p...........,...,.p..",
         "......p....p......p...,.",
         ",...p..p..,..,..p,...p..",
@@ -113,12 +113,13 @@
         "w": { "item": "stash_wood", "chance": 30 }
       },
       "add": [ { "item": "ash", "chance": 2, "x": 11, "y": 11, "repeat": 2 }, { "item": "charcoal", "chance": 3, "x": 11, "y": 11 } ],
-      "traps": { "p": { "trap": "tr_spike_pit", "chance": 70 } },
+      "traps": { "p": { "trap": "tr_spike_pit" } },
       "place_monsters": [
         { "monster": "GROUP_ZOMBIE_SURVIVOR_CAMP", "x": 11, "y": 10 },
         { "monster": "GROUP_ZOMBIE_SURVIVOR_CAMP", "x": 10, "y": 9 },
         { "monster": "GROUP_ZOMBIE_SURVIVOR_CAMP", "x": 12, "y": 8 }
-      ]
+      ],
+      "place_vehicles": [ { "vehicle": "surv_car", "x": 4, "y": 1, "chance": 20, "rotation": 0, "status": -1, "fuel": 1 } ]
     }
   }
 ]

@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": "bandit_tower_3blc",
-    "comment": "bottom left corner, third and odd level floors.",
+    "//": "bottom left corner, third and odd level floors.",
     "weight": 250,
     "method": "json",
     "object": {
@@ -36,7 +36,7 @@
       "rotation": 3,
       "palettes": [ "tri_tower", "upper_level", "bandit_tower_stuff" ],
       "terrain": { "j": "t_door_c" },
-      "furniture": { "K": "f_safe_l" },
+      "furniture": { "K": "f_safe_l", "v": "f_vending_o" },
       "item": {
         "c": { "item": "textbook_robots" },
         "x": [

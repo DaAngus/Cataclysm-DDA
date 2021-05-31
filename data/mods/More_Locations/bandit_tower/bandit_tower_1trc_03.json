@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": "bandit_tower_1trc",
-    "comment": "top right corner, ground floor",
+    "//": "top right corner, ground floor",
     "weight": 250,
     "method": "json",
     "object": {
@@ -10,12 +10,12 @@
       "rows": [
         "===#####PPPPPPPP#####===",
         "=#######PPPPPPPP########",
-        "=kk#####PPPPPPPP########",
-        "##kk###k              ==",
-        "###kk##k              ==",
-        "####k===            kk==",
+        "=yy#####PPPPPPPP########",
+        "##yy###y              ==",
+        "###yy##y              ==",
+        "####y===            yy==",
         "#####===                ",
-        "###kk===                ",
+        "###yy===                ",
         "PPP                     ",
         "PPP                     ",
         "PPP                     ",
@@ -41,7 +41,7 @@
         "Y": {
           "terrain": "t_elevator",
           "furniture": "f_dumpster",
-          "fields": { "field": "fd_blood", "chance": 50 },
+          "fields": { "field": "fd_blood" },
           "items": [
             { "item": "trash_cart", "chance": 95 },
             { "item": "monparts", "chance": 50 },

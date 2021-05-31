@@ -1,6 +1,8 @@
 package com.cleverraven.cataclysmdda;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -14,11 +16,13 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.res.AssetManager;
+import android.net.Uri;
 import android.os.*;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -28,8 +32,8 @@ public class SplashScreen extends Activity {
     private static final int INSTALL_DIALOG_ID = 0;
     private ProgressDialog installDialog;
 
-    public CharSequence[] mSettingsNames = { "Software rendering" };
-    public boolean[] mSettingsValues = { true };
+    public CharSequence[] mSettingsNames;
+    public boolean[] mSettingsValues = { false, false, true };
 
     private String getVersionName() {
         try {
@@ -42,6 +46,49 @@ public class SplashScreen extends Activity {
         }
     }
 
+    private void showCrashAlert() {
+        String externalFilesDir = getExternalFilesDir(null).getPath();
+        File crashAlertPrompt = new File(externalFilesDir + "/config/crash.log.prompt");
+        try {
+            crashAlertPrompt.delete();
+            if(crashAlertPrompt.exists()) { // Sometimes .delete() doesn't really delete the file and I don't know why
+                crashAlertPrompt.getCanonicalFile().delete();
+            }
+        } catch(IOException e) {
+            return;
+        }
+        File crashLog = new File(externalFilesDir + "/config/crash.log");
+        StringBuilder text = new StringBuilder();
+        text.append(getString(R.string.crashMessage));
+        text.append("\n\n");
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(crashLog));
+            String line;
+            while((line = br.readLine()) != null) {
+                text.append(line);
+                text.append("\n");
+            }
+            br.close();
+        } catch (IOException e) {
+            return;
+        }
+        final String message = text.toString();
+        this.runOnUiThread(new Runnable() {
+           public void run() {
+                AlertDialog errorAlert = new AlertDialog.Builder(SplashScreen.this)
+                .setTitle(getString(R.string.crashAlert))
+                .setCancelable(false)
+                .setMessage(message)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        SplashScreen.this.startGameActivity(false);
+                    }
+                }).create();
+                errorAlert.show();
+           }
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.e(TAG, "onCreate()");
@@ -49,10 +96,17 @@ public class SplashScreen extends Activity {
 
         // Start the game if already installed, otherwise start installing...
         if (getVersionName().equals(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("installed", ""))) {
-            startGameActivity(false);
+            // Show an alert box if the game crashed last time
+            String externalFilesDir = getExternalFilesDir(null).getPath();
+            File crashAlertPrompt = new File(externalFilesDir + "/config/crash.log.prompt");
+            if(crashAlertPrompt.exists()) {
+                showCrashAlert();
+            } else {
+                startGameActivity(false);
+            }
         }
         else {
-            new InstallProgramTask().execute();             
+            new InstallProgramTask().execute();
         }
     }
 
@@ -63,7 +117,7 @@ public class SplashScreen extends Activity {
                 installDialog = new ProgressDialog(this);
                 installDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                 boolean clean_install = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("installed", "").isEmpty();
-                installDialog.setTitle(getString(clean_install ? R.string.installing : R.string.upgrading));
+                installDialog.setTitle(getString(clean_install ? R.string.installTitle : R.string.upgradeTitle));
                 installDialog.setIndeterminate(true);
                 installDialog.setCancelable(false);
                 return installDialog;
@@ -110,18 +164,19 @@ public class SplashScreen extends Activity {
 
         private AlertDialog installationAlert;
         private AlertDialog settingsAlert;
+        private AlertDialog helpAlert;
 
         @Override
         protected void onPreExecute() {
             installationAlert = new AlertDialog.Builder(SplashScreen.this)
-				.setTitle("Installation Failed")
-				.setCancelable(false)
-				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						SplashScreen.this.finish();
-						return;
-					}
-				}).create();
+                .setTitle("Installation Failed")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        SplashScreen.this.finish();
+                        return;
+                    }
+                }).create();
             AssetManager assetManager = getAssets();
             try {
                 totalFiles = countTotalAssets(assetManager, "data") +
@@ -133,19 +188,43 @@ public class SplashScreen extends Activity {
                 installationAlert.show();
             }
 
+            helpAlert = new AlertDialog.Builder(SplashScreen.this)
+                .setTitle(getString(R.string.helpTitle))
+                .setCancelable(false)
+                .setMessage(getString(R.string.helpMessage))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        settingsAlert.show();
+                        return;
+                    }
+                }).create();
+
+            mSettingsNames = new CharSequence[] {
+                getString(R.string.softwareRendering),
+                getString(R.string.forceFullscreen),
+                getString(R.string.trapBackButton)
+            };
+
             settingsAlert = new AlertDialog.Builder(SplashScreen.this)
-                .setTitle("Settings")
+                .setTitle(getString(R.string.settings))
                 .setMultiChoiceItems(SplashScreen.this.mSettingsNames, SplashScreen.this.mSettingsValues, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                         SplashScreen.this.mSettingsValues[which] = isChecked;
                     }})
                 .setCancelable(false)
-                .setPositiveButton("Start game", new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.startGame), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        for (int i = 0; i < mSettingsNames.length; ++i)
-                            PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean(SplashScreen.this.mSettingsNames[i].toString(), SplashScreen.this.mSettingsValues[i]).commit();
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("Software rendering", SplashScreen.this.mSettingsValues[0]).commit();
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("Force fullscreen", SplashScreen.this.mSettingsValues[1]).commit();
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("Trap Back button", SplashScreen.this.mSettingsValues[2]).commit();
                         SplashScreen.this.startGameActivity(false);
+                        return;
+                    }
+                })
+                .setNeutralButton(getString(R.string.showHelp), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        helpAlert.show();
                         return;
                     }
                 }).create();
@@ -162,22 +241,22 @@ public class SplashScreen extends Activity {
             AssetManager assetManager = getAssets();
             String externalFilesDir = getExternalFilesDir(null).getPath();
 
-			try {
-				// Clear out the old data if it exists (but preserve custom folders + files)
-				deleteRecursive(assetManager, externalFilesDir, new File(externalFilesDir + "/data"));
-				deleteRecursive(assetManager, externalFilesDir, new File(externalFilesDir + "/gfx"));
-				deleteRecursive(assetManager, externalFilesDir, new File(externalFilesDir + "/lang"));
+            try {
+                // Clear out the old data if it exists (but preserve custom folders + files)
+                deleteRecursive(assetManager, externalFilesDir, new File(externalFilesDir + "/data"));
+                deleteRecursive(assetManager, externalFilesDir, new File(externalFilesDir + "/gfx"));
+                deleteRecursive(assetManager, externalFilesDir, new File(externalFilesDir + "/lang"));
 
-				// Install the new data over the top
-				copyAssetFolder(assetManager, "data", externalFilesDir + "/data");
-				copyAssetFolder(assetManager, "gfx", externalFilesDir + "/gfx");
-				copyAssetFolder(assetManager, "lang", externalFilesDir + "/lang");
+                // Install the new data over the top
+                copyAssetFolder(assetManager, "data", externalFilesDir + "/data");
+                copyAssetFolder(assetManager, "gfx", externalFilesDir + "/gfx");
+                copyAssetFolder(assetManager, "lang", externalFilesDir + "/lang");
             } catch(Exception e) {
-				installationAlert.setMessage(e.getMessage());
-				return false;
+                installationAlert.setMessage(e.getMessage());
+                return false;
             }
 
-            // Remember which version the installed data is 
+            // Remember which version the installed data is
             PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("installed", getVersionName()).commit();
 
             publishProgress(++installedFiles);
@@ -212,14 +291,14 @@ public class SplashScreen extends Activity {
         // Returns true if an asset exists in the APK (either a directory or a file)
         // eg. assetExists("data/sound") or assetExists("data/font", "unifont.ttf") would both return true
         private boolean assetExists(AssetManager assetManager, String assetPath) {
-		    return assetExists(assetManager, assetPath, "");
+            return assetExists(assetManager, assetPath, "");
         }
 
         private boolean assetExists(AssetManager assetManager, String assetPath, String assetName) {
             try {
                 String[] files = assetManager.list(assetPath);
                 if (assetName.isEmpty())
-                    return files.length > 0; // folder exists                    
+                    return files.length > 0; // folder exists
                 for (String file : files) {
                     if (file.equalsIgnoreCase(assetName))
                         return true; // file exists
@@ -312,11 +391,11 @@ public class SplashScreen extends Activity {
         @Override
         protected void onPostExecute(Boolean result) {
             removeDialog(INSTALL_DIALOG_ID);
-			if(result) {
+            if(result) {
                 settingsAlert.show();
-			} else {
-				installationAlert.show();
-			}
+            } else {
+                installationAlert.show();
+            }
         }
     }
 }
